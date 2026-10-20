@@ -1,0 +1,190 @@
+<title>Song Forge</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap">
+<style>
+/*CSS*/
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="bar">
+      <div class="brand"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="pick" d="M12 22c-1.6 0-7.5-8.3-8.4-12.6C2.9 5.9 6.6 2 12 2s9.1 3.9 8.4 7.4C19.5 13.7 13.6 22 12 22z"/></svg>Song Forge</div>
+      <div class="bar-r"><span class="save" id="saveState">Saved in this browser</span><button class="btn" id="pdfBtn">Save as PDF</button><button class="btn" id="filesBtn">Import / Export</button></div>
+    </div>
+    <div class="songhead">
+      <input id="songTitle" class="title-in" aria-label="Song title" spellcheck="false">
+      <input id="songArtist" class="artist-in" aria-label="Artist or dedication" placeholder="Artist or dedication">
+    </div>
+    <div class="fields">
+      <label class="fld">Key<select id="keySel"></select></label>
+      <div class="fld">Transpose<span class="stepper"><button id="trDown" aria-label="Transpose down a semitone">−</button><button id="trUp" aria-label="Transpose up a semitone">+</button></span></div>
+      <label class="fld">Capo<input id="capoIn" type="number" min="0" max="12"></label>
+      <label class="fld">BPM<input id="tempoIn" type="number" min="40" max="240"></label>
+      <label class="fld">Tuning<select id="tuneSel"></select></label>
+      <label class="fld">Strum<select id="strumSel"></select></label>
+      <span class="sounds" id="soundsIn"></span>
+    </div>
+  </header>
+
+  <div class="dock">
+    <div class="dock-row">
+      <button class="btn primary play" id="playBtn"></button>
+      <button class="btn" id="loopBtn" aria-pressed="false">Loop</button>
+      <button class="btn" id="metroBtn" aria-pressed="false">Click track</button>
+      <button class="btn" id="followBtn" aria-pressed="true" title="Scroll the song sheet along with playback">Follow</button>
+      <button class="btn" id="riffsBtn" aria-pressed="true" title="Play the riffs you attached to parts">Riffs</button>
+      <button class="btn" id="expandBtn" aria-pressed="false">Expand riffs</button>
+      <button class="btn" id="muteBtn" aria-pressed="false"></button>
+      <div class="now" aria-live="polite"><span class="now-sub" id="nowSub">Ready</span><span class="now-ch" id="nowCh">—</span></div>
+    </div>
+    <div class="arr" id="arr" aria-label="Song arrangement. Drag parts to reorder."></div>
+    <div class="arr-meta" id="arrMeta"></div>
+  </div>
+
+  <main class="main">
+    <section class="part" data-part="song" id="part-song">
+      <div class="part-h"><h2>Song sheet</h2><p class="hint">Tap any chord to study it. Space plays or stops.</p><button class="xbtn" data-extract="song">Extract</button></div>
+      <div class="part-ph" hidden></div>
+      <div class="part-body">
+        <div class="strip-wrap" id="stripWrap">
+          <div class="strip-h"><span>Chords in this song</span><button class="btn sm" id="floatBtn" aria-pressed="false" title="Keep these chords in view while you scroll">Float</button></div>
+          <div class="chord-strip" id="chordStrip" aria-label="Chords in this song"></div>
+        </div>
+        <div id="sheet"></div>
+        <div class="add-sec" id="addSec"><span>Add part</span>
+          <button data-add-type="intro" data-type="intro">Intro</button>
+          <button data-add-type="verse" data-type="verse">Verse</button>
+          <button data-add-type="prechorus" data-type="prechorus">Pre-chorus</button>
+          <button data-add-type="chorus" data-type="chorus">Chorus</button>
+          <button data-add-type="bridge" data-type="bridge">Bridge</button>
+          <button data-add-type="solo" data-type="solo">Solo</button>
+          <button data-add-type="outro" data-type="outro">Outro</button>
+        </div>
+      </div>
+    </section>
+    <aside class="part panel nowpart" data-part="now" id="part-now" aria-label="Now and next chord">
+      <div class="part-h"><h2>Now / Next</h2><button class="xbtn" data-extract="now">Extract</button></div>
+      <div class="part-ph" hidden></div>
+      <div class="part-body"><div id="nowNext"></div></div>
+    </aside>
+  </main>
+
+  <section class="part panel" data-part="chords" id="part-chords" aria-label="Chords tabs">
+    <div class="part-h"><h2>Chords tabs</h2><span class="cap">Study a chord, get next-chord ideas, explore keys</span><button class="xbtn" data-extract="chords">Extract</button></div>
+    <div class="part-ph" hidden></div>
+    <div class="part-body">
+      <nav class="seg" id="toolTabs" role="tablist">
+        <button data-tool="chord" role="tab">Chord</button>
+        <button data-tool="next" role="tab">Next chord</button>
+        <button data-tool="circle" role="tab">Circle of fifths</button>
+      </nav>
+      <div class="tool-body" id="toolBody"></div>
+    </div>
+  </section>
+
+  <section class="bench">
+    <div class="part panel" data-part="neck" id="part-neck">
+      <div class="part-h"><h2>Neck</h2><span class="cap" id="neckCap"></span><button class="xbtn" data-extract="neck">Extract</button></div>
+      <div class="part-ph" hidden></div>
+      <div class="part-body">
+        <div class="neck-ctl" id="neckCtl">
+          <div class="seg small"><button data-neck="chord">Chord tones</button><button data-neck="scale">Key scale</button><button data-neck="penta">Pentatonic</button><button data-neck="all">All notes</button></div>
+          <div class="seg small"><button data-nlab="note">Notes</button><button data-nlab="interval">Intervals</button></div>
+          <label class="chk"><input type="checkbox" id="neckToTab" checked> Tapping writes to the tab</label>
+        </div>
+        <div class="neck-scroll"><div id="neck"></div></div>
+      </div>
+    </div>
+    <div class="part panel" data-part="tab" id="part-tab">
+      <div class="part-h"><h2>Tab</h2><span class="cap">Write or create riffs, licks and solos</span><button class="xbtn" data-extract="tab">Extract</button></div>
+      <div class="part-ph" hidden></div>
+      <div class="part-body">
+        <div class="lib-h"><span class="sub">Your riffs <span id="riffCount"></span></span>
+          <label class="duck">Chords under riffs <input type="range" id="duckIn" min="0" max="100" step="5"> <output id="duckVal"></output></label></div>
+        <div class="riff-lib" id="riffLib"></div>
+        <div class="gen" id="genBox">
+          <span class="gen-t">Create from the song</span>
+          <label class="fld">Type<select id="genKind"><option value="riff">Riff</option><option value="lick">Lick</option><option value="solo">Solo</option></select></label>
+          <label class="fld">Over<select id="genSrc"></select></label>
+          <button class="btn primary" id="genBtn">Create riff</button>
+          <button class="btn" id="genUndo" hidden>Undo</button>
+          <label class="chk"><input type="checkbox" id="backingChk" checked> Play with chords</label>
+          <div class="gen-att" id="genAttach" hidden><span id="genAttachTo"></span>
+            <button class="btn sm" data-gatt="over">Over the part</button><button class="btn sm" data-gatt="lead">Lead-in</button><button class="btn sm" data-gatt="fill">Fill</button></div>
+        </div>
+        <div class="riff-head"><span class="rh-lab">Editing</span><input id="tabName" aria-label="Riff name" spellcheck="false">
+          <button class="btn sm" id="riffDup">Duplicate</button><button class="btn sm" id="riffDel">Delete</button></div>
+        <div class="tab-tools" id="tabTools">
+          <button class="btn primary" id="tabPlay"></button>
+          <span class="sep"></span>
+          <button class="btn tech" data-tech="h" aria-pressed="false"><b>h</b> Hammer-on</button>
+          <button class="btn tech" data-tech="p" aria-pressed="false"><b>p</b> Pull-off</button>
+          <button class="btn tech" data-tech="b" aria-pressed="false"><b>b</b> Bend</button>
+          <button class="btn tech" data-tech="/" aria-pressed="false"><b>/</b> Slide up</button>
+          <button class="btn tech" data-tech="\" aria-pressed="false"><b>\</b> Slide down</button>
+          <button class="btn tech" data-tech="~" aria-pressed="false"><b>~</b> Vibrato</button>
+          <button class="btn tech" data-tech="x" aria-pressed="false"><b>x</b> Dead note</button>
+          <button class="btn tech" data-tech="" aria-pressed="false">Plain</button>
+          <span class="sep"></span>
+          <button class="btn tech" id="tabNext">Next step</button>
+          <button class="btn tech" id="tabClearNote">Clear note</button>
+          <button class="btn tech" id="tabAddBar">Add bar</button>
+          <button class="btn tech" id="tabDelBar">Remove bar</button>
+          <button class="btn tech" id="tabClear">Clear tab</button>
+        </div>
+        <div class="tab-scroll"><div class="tab-grid" id="tabGrid" tabindex="0" aria-label="Tab grid. Type fret numbers, arrows to move."></div></div>
+        <div class="tab-foot"><span id="tabPos"></span><p class="hint">Click a step, then type a fret (two digits for 10–24). Arrows move, Space steps forward, Delete clears, Enter plays the column. Keys h p b / \ ~ x set techniques.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="gtr" id="gtr">
+    <div class="gtr-menu" id="gtrMenu" hidden></div>
+    <button class="gtr-btn" id="gtrBtn" aria-expanded="false" aria-controls="gtrMenu" aria-label="Jump to a part of the page"></button>
+  </div>
+
+  <div class="modal" id="modal" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+      <div class="modal-h"><h2 id="mTitle">Import / Export</h2><button class="btn" id="mClose">Close</button></div>
+      <nav class="seg" id="mTabs"><button data-m="json">Song file (JSON)</button><button data-m="text">Chord sheet + tab</button><button data-m="import">Import</button></nav>
+      <div id="mBody"></div>
+    </div>
+  </div>
+  <div class="modal" id="pdfModal" hidden>
+    <div class="modal-card pdf-card" role="dialog" aria-modal="true" aria-labelledby="pdfTitle">
+      <div class="modal-h"><div><h2 id="pdfTitle">Save as PDF</h2><p class="msg" id="pdfSummary"></p></div><button class="btn" id="pdfClose">Close</button></div>
+      <div class="pdf-body">
+        <div class="pdf-opts" id="pdfOpts"></div>
+        <div class="pdf-prev">
+          <div class="pdf-suggest" id="pdfSuggest" hidden></div>
+          <div class="pdf-pages" id="pdfPages" aria-label="Page preview"></div>
+        </div>
+      </div>
+      <div class="pdf-foot"><p class="hint">The preview is exactly what the file will look like.</p><button class="btn primary" id="pdfSave">Save PDF</button></div>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status" hidden></div>
+</div>
+
+<script>
+/* Example song: "The Only Song That Brings Me Home" from the project, plus a marked example tab lick */
+const SAMPLE_SONG = /*SAMPLE*/null;
+</script>
+<script>
+/*CORE*/
+</script>
+<script>
+/*UI*/
+</script>
+<script>
+/* App fonts (Latin subsets, SIL Open Font License) embedded so the PDF and offline screen match the app */
+const PDF_FONTS = /*FONTS*/null;
+</script>
+<script>
+/*JSPDF*/
+</script>
+<script>
+/*PDF*/
+</script>

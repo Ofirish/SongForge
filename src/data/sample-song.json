@@ -1,0 +1,229 @@
+{
+  "id": "home",
+  "title": "The Only Song That Brings Me Home",
+  "artist": "Dedicated to Toy",
+  "key": "G",
+  "capo": 0,
+  "tempo": 72,
+  "tuning": "standard",
+  "strum": "ballad",
+  "sections": [
+    {
+      "type": "verse",
+      "title": "[Verse 1]",
+      "riffs": [
+        {
+          "id": "walkup",
+          "place": "lead",
+          "every": true
+        }
+      ],
+      "lines": [
+        {
+          "chords": "G                   C               G",
+          "lyrics": "The highway dust is settling on the porch"
+        },
+        {
+          "chords": "G             C                 D",
+          "lyrics": "Staring at a flame from a dying torch"
+        },
+        {
+          "chords": "G              C                       G",
+          "lyrics": "Ain't a lot of gold in these calloused hands"
+        },
+        {
+          "chords": "D             C                     G",
+          "lyrics": "Just a simple boy from the southern lands"
+        }
+      ]
+    },
+    {
+      "type": "verse",
+      "title": "[Verse 2]",
+      "lines": [
+        {
+          "chords": "G                       C               G",
+          "lyrics": "The clock keeps ticking and the shadows grow"
+        },
+        {
+          "chords": "G               C                     D",
+          "lyrics": "Nowhere else on earth that I'd rather go"
+        },
+        {
+          "chords": "C               D                         G         C",
+          "lyrics": "Than right here beside you in the evening breeze"
+        },
+        {
+          "chords": "D                C                           G",
+          "lyrics": "Listening to the wind through the whispering trees"
+        }
+      ]
+    },
+    {
+      "type": "chorus",
+      "title": "[Chorus]",
+      "lines": [
+        {
+          "chords": "         C    C     Am               G",
+          "lyrics": "And it's you, Toy, you're my guiding light"
+        },
+        {
+          "chords": "         C    C     Am           G",
+          "lyrics": "Through the longest road and the darkest night"
+        },
+        {
+          "chords": "C                        G",
+          "lyrics": "Every single mile that I'm bound to roam"
+        },
+        {
+          "chords": "C               D                   G",
+          "lyrics": "You're the only song that brings me home"
+        }
+      ]
+    },
+    {
+      "type": "verse",
+      "title": "[Verse 3]",
+      "lines": [
+        {
+          "chords": "G                      C             G",
+          "lyrics": "We ain't got a fortune piled up in a bank"
+        },
+        {
+          "chords": "G                  C                 D",
+          "lyrics": "Just our own front porch and a rusty tank"
+        },
+        {
+          "chords": "    C                 D   G                C",
+          "lyrics": "But when you smile at me, all the troubles fade"
+        },
+        {
+          "chords": "D                       C                   G",
+          "lyrics": "We've got the best damn love that God ever made"
+        }
+      ]
+    },
+    {
+      "type": "chorus",
+      "title": "[Chorus]",
+      "lines": [
+        {
+          "chords": "         C    C     Am               G",
+          "lyrics": "And it's you, Toy, you're my guiding light"
+        },
+        {
+          "chords": "         C    C     Am           G",
+          "lyrics": "Through the longest road and the darkest night"
+        },
+        {
+          "chords": "C                        G",
+          "lyrics": "Every single mile that I'm bound to roam"
+        },
+        {
+          "chords": "C               D                   G",
+          "lyrics": "You're the only song that brings me home"
+        }
+      ]
+    },
+    {
+      "type": "outro",
+      "title": "[Outro]",
+      "lines": [
+        {
+          "chords": "C               D                   G",
+          "lyrics": "Yeah, you're the only song that brings me home"
+        }
+      ]
+    }
+  ],
+  "activeRiff": "walkup",
+  "riffs": [
+    {
+      "id": "walkup",
+      "name": "Intro walk-up (example)",
+      "kind": "riff",
+      "from": "",
+      "steps": 16,
+      "notes": [
+        {
+          "c": 0,
+          "s": 0,
+          "f": 3
+        },
+        {
+          "c": 2,
+          "s": 1,
+          "f": 0
+        },
+        {
+          "c": 3,
+          "s": 1,
+          "f": 2,
+          "t": "h"
+        },
+        {
+          "c": 4,
+          "s": 1,
+          "f": 3
+        },
+        {
+          "c": 6,
+          "s": 2,
+          "f": 2
+        },
+        {
+          "c": 6,
+          "s": 3,
+          "f": 0
+        },
+        {
+          "c": 6,
+          "s": 4,
+          "f": 1
+        },
+        {
+          "c": 8,
+          "s": 4,
+          "f": 1
+        },
+        {
+          "c": 9,
+          "s": 4,
+          "f": 0,
+          "t": "p"
+        },
+        {
+          "c": 10,
+          "s": 3,
+          "f": 2
+        },
+        {
+          "c": 11,
+          "s": 3,
+          "f": 0,
+          "t": "p"
+        },
+        {
+          "c": 12,
+          "s": 2,
+          "f": 0
+        },
+        {
+          "c": 14,
+          "s": 0,
+          "f": 3
+        },
+        {
+          "c": 14,
+          "s": 5,
+          "f": 3,
+          "t": "~"
+        }
+      ]
+    }
+  ],
+  "progression": [
+    "G",
+    "C"
+  ]
+}
