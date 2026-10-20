@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
-"""Build Song Forge into one standalone file: index.html at the repo root.
+"""Build Song Forge into one standalone file.
 
 The app is written as small modules under src/. This script stitches them,
-in the order listed in src/modules.json, into a single HTML page that works
-opened straight from disk, on GitHub Pages, or published as a Claude artifact.
+in the order listed in src/modules.json, into:
 
-Usage:  python3 scripts/build.py          # writes index.html
+  index.html          a complete HTML document (doctype, charset, viewport) for
+                      GitHub Pages and for opening straight from disk
+  dist/artifact.html  the same page as body content only, for publishing as a
+                      Claude artifact (the viewer adds its own document skeleton)
+
+Usage:  python3 scripts/build.py          # writes both files
         python3 scripts/build.py --check  # exit 1 if index.html is out of date
 """
 import json, pathlib, sys
@@ -37,12 +41,24 @@ def build():
         html = html.replace(k, v)
     return html
 
+def standalone(content):
+    """Wrap the page content in a full document: head items (title, meta, fonts, styles) go in <head>."""
+    split = content.index('<div class="app">')
+    head, body = content[:split].strip(), content[split:].strip()
+    return ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
+            '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n'
+            '<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>\n'
+            f'{head}\n</head>\n<body>\n{body}\n</body>\n</html>\n')
+
 if __name__ == '__main__':
-    out = build()
+    content = build()
+    page = standalone(content)
     target = ROOT / 'index.html'
     if '--check' in sys.argv:
-        if not target.exists() or target.read_text(encoding='utf-8') != out:
+        if not target.exists() or target.read_text(encoding='utf-8') != page:
             print('index.html is out of date. Run: python3 scripts/build.py'); sys.exit(1)
         print('index.html is up to date.'); sys.exit(0)
-    target.write_text(out, encoding='utf-8')
-    print(f'Wrote {target.relative_to(ROOT)} ({len(out.encode()) // 1024} KB)')
+    target.write_text(page, encoding='utf-8')
+    (ROOT / 'dist').mkdir(exist_ok=True)
+    (ROOT / 'dist' / 'artifact.html').write_text(content, encoding='utf-8')
+    print(f'Wrote index.html ({len(page.encode()) // 1024} KB) and dist/artifact.html')

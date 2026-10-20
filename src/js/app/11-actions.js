@@ -27,11 +27,14 @@ function moveSection(from, to) {
   if (Player.playing) Player.stop();
   const [s] = song.sections.splice(from, 1);
   song.sections.splice(to, 0, s);
-  ui.editing.clear();
+  forgetPartIndexes();
   songChanged();
 }
+/** Part-index UI state (open editors, riff panels, expanded riff tabs) is stale once parts move. */
+function forgetPartIndexes() { ui.editing.clear(); ui.attachOpen = null; ui.texp.clear(); ui.delArm = null; }
 function loadSong(raw, msg) {
   if (Player.playing) Player.stop();
+  try { backupNow(JSON.stringify(serializeSong(song))); } catch (e) {}   // the song being replaced stays recoverable
   song = normalizeSong(raw);
   if (!STRUMS[song.strum]) song.strum = 'ballad';
   ui.editing.clear(); ui.circleSel = null; ui.selK = null; ui.cur = { c:0, s:5 }; ui.tabUndo = null; ui.lastGen = null; ui.texp.clear(); ui.attachOpen = null;
@@ -49,7 +52,11 @@ function renderModal() {
     body.innerHTML = `<label class="fld block">Open a file<input type="file" id="impFile" accept=".json,.txt,.chordpro,text/plain,application/json"></label>
       <label class="fld block">Or paste song JSON or a chord sheet<textarea id="impText" rows="9" spellcheck="false" placeholder="[Verse 1]&#10;G        C        G&#10;The highway dust is settling…"></textarea></label>
       <div class="ed-acts"><button class="btn primary" id="impGo">Load song</button><button class="btn" id="impSample">Load the example song</button><button class="btn" id="impNew">Start a blank song</button></div>
-      <p class="msg" id="impMsg">Loading replaces the song on screen. Export first if you want to keep it.</p>`;
+      <p class="msg" id="impMsg">Loading replaces the song on screen. The current song is kept in Recent autosaves first.</p>
+      <h3 class="po-h">Recent autosaves</h3>
+      ${(() => { const l = readBackups(); return l.length ? `<div class="backups">${l.map((b, i) => `<div class="bk-row"><span class="bk-t">${esc(b.title)}</span><span class="bk-when">${new Date(b.t).toLocaleString([], { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}</span><button class="btn sm" data-restore="${i}">Restore</button></div>`).join('')}</div>`
+        : '<p class="empty">Copies appear here as you work. One is kept each minute you make changes, up to 12.</p>'; })()}
+      <p class="hint">Everything stays in this browser on this device. Nothing is uploaded or written to GitHub.</p>`;
   } else {
     const txt = modalTab === 'json' ? JSON.stringify(serializeSong(song), null, 2) : songToText(song);
     body.innerHTML = `<textarea id="expText" rows="16" readonly spellcheck="false">${esc(txt)}</textarea>

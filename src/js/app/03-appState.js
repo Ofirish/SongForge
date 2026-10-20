@@ -31,14 +31,56 @@ if (!(prefs.duck >= 0 && prefs.duck <= 100)) prefs.duck = 50;
 ui.follow = prefs.follow !== false;
 AudioEngine.setMuted(prefs.muted);
 
-let saveTimer = 0;
+/* ---------- local saving ----------
+   Songs live only in this browser (localStorage); nothing is ever sent anywhere.
+   - every change is written ~0.35 s later
+   - a safety write runs every minute, and when the tab is hidden or closed
+   - each minute with changes also keeps a copy in a rolling list of recent autosaves */
+const BACKUP_KEY = 'songforge.backups.v1';
+const MAX_BACKUPS = 12;
+let saveTimer = 0, dirty = false, backupDirty = false, lastSaved = 0;
 function save() {
+  dirty = true; backupDirty = true;
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => {
-    try { localStorage.setItem(STORE_KEY, JSON.stringify(serializeSong(song))); $('#saveState').textContent = 'Saved in this browser'; }
-    catch (e) { $('#saveState').textContent = 'Not saved here. Use Export to keep a copy.'; }
-  }, 350);
+  saveTimer = setTimeout(writeNow, 350);
 }
+/** Write the song now. Returns the JSON written, or null if the browser refused. */
+function writeNow() {
+  clearTimeout(saveTimer);
+  let json;
+  try { json = JSON.stringify(serializeSong(song)); localStorage.setItem(STORE_KEY, json); }
+  catch (e) { showSaveState(false); return null; }
+  dirty = false; lastSaved = Date.now(); showSaveState(true);
+  return json;
+}
+function showSaveState(ok) {
+  const el = document.getElementById('saveState');
+  if (!el) return;
+  el.textContent = ok ? 'Saved in this browser · ' + new Date(lastSaved).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })
+    : 'Couldn’t save in this browser. Use Import / Export to keep a copy.';
+  el.title = ok ? 'Your song is stored only on this device, in this browser. Autosaves every minute.' : '';
+  el.classList.toggle('bad', !ok);
+}
+function readBackups() { try { const l = JSON.parse(localStorage.getItem(BACKUP_KEY) || '[]'); return Array.isArray(l) ? l : []; } catch (e) { return []; } }
+/** Keep a copy of `json` in the recent-autosave list (skips exact duplicates). */
+function backupNow(json) {
+  if (!json) return;
+  let list = readBackups();
+  if (list[0] && list[0].json === json) return;
+  let title = 'Untitled'; try { title = JSON.parse(json).title || title; } catch (e) {}
+  list.unshift({ t:Date.now(), title, json });
+  list = list.slice(0, MAX_BACKUPS);
+  while (list.length > 1) {                      // stay well inside the browser's storage quota
+    try { localStorage.setItem(BACKUP_KEY, JSON.stringify(list)); break; } catch (e) { list.pop(); }
+  }
+  if (list.length === 1) try { localStorage.setItem(BACKUP_KEY, JSON.stringify(list)); } catch (e) {}
+}
+setInterval(() => {
+  const json = dirty ? writeNow() : (() => { try { return JSON.stringify(serializeSong(song)); } catch (e) { return null; } })();
+  if (backupDirty && json) { backupNow(json); backupDirty = false; }
+}, 60000);
+window.addEventListener('pagehide', () => { const j = writeNow(); if (backupDirty) backupNow(j); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { const j = writeNow(); if (backupDirty) { backupNow(j); backupDirty = false; } } });
 
 /* ---------- helpers ---------- */
 /**

@@ -3,6 +3,7 @@
    ================================================================ */
 function renderHeader() {
   $('#songTitle').value = song.title;
+  if (window.fitTitle) requestAnimationFrame(window.fitTitle);
   $('#songArtist').value = song.artist;
   $('#keySel').value = KEY_OPTIONS.includes(song.key) ? song.key : (() => { const o = document.createElement('option'); o.value = o.textContent = song.key; $('#keySel').append(o); return song.key; })();
   $('#capoIn').value = song.capo;

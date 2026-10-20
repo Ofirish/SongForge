@@ -14,8 +14,13 @@ Owner: Ofir. The example song is "The Only Song That Brings Me Home", dedicated 
   top-level code that runs on load (state setup, `bind()`, `renderAll()`) must come after what it calls.
 - `src/js/core/` has no DOM access (music theory, recommender, voicing finder, song model,
   riff/lick/solo generator) and can be tested in Node by concatenating the files.
-- `index.html` at the root is a build output. **Always run `python3 scripts/build.py` after editing
-  `src/` and commit `index.html` together with the source change**, so the downloadable file stays current.
+- `index.html` at the root is a build output (a full HTML document). **Always run `python3 scripts/build.py`
+  after editing `src/` and commit `index.html` together with the source change**, so the downloadable file
+  and the live site stay current. The build also writes `dist/artifact.html` (git-ignored): the same page as
+  body content only, which is what gets published as a Claude artifact (the viewer adds its own skeleton).
+- `src/styles.css` repeats the base rules the Claude viewer adds (`[hidden]{display:none!important}`, body margin)
+  so the page behaves the same standalone. Don't remove them: several pop-ups use `display:grid/flex` and rely on it.
+- Test in a real browser engine when layout matters: jsdom ignores `!important` and mis-sizes SVG.
 
 ## Deploy / update flow
 - GitHub Pages deploys from the `main` branch root (Settings → Pages → "Deploy from a branch", main, /).
@@ -24,6 +29,14 @@ Owner: Ofir. The example song is "The Only Song That Brings Me Home", dedicated 
 - The same `index.html` can also be published as a Claude artifact. Inside the Claude viewer, file
   saves go through the `downloads` capability (publish with `capabilities: {downloads: true}`);
   standalone, `saveFile()` falls back to a normal browser download.
+
+## Saving (user data)
+- Songs are stored only in the browser (`localStorage`): `songforge.song.v1` (current song),
+  `songforge.backups.v1` (up to 12 recent autosaves, restorable from Import / Export → Import),
+  `songforge.prefs.v1` (UI settings), `songforge.bgimg.v1` (PDF background image).
+- Writes happen ~0.35 s after each change, every minute as a safety net, and when the tab is hidden or closed.
+  Loading or starting another song backs up the current one first.
+- User songs are never written to the repo. The repo holds only the app and the example song.
 
 ## Data model (song JSON)
 - `sections[]`: `{type, title, repeat, lines:[{chords, lyrics}], riffs:[{id, place:'over'|'lead'|'fill', every}]}`

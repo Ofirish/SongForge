@@ -75,6 +75,18 @@ function transposeSong(song, n) {
   const flat = parseKey(song.key).flat;
   song.sections.forEach(sec => sec.lines.forEach(l => { l.chords = transposeLine(l.chords, n, flat); }));
   song.progression = song.progression.map(s => transposeSym(s, n, flat));
+  // riffs: shift every fret by n, folding by an octave when it would leave the neck
+  (song.riffs || []).forEach(r => {
+    for (const k of Object.keys(r.notes)) {
+      const note = r.notes[k];
+      if (note.f === 'x') continue;
+      let f = note.f + n;
+      if (f < 0) f += 12;
+      if (f > 24) f -= 12;
+      note.f = f;
+    }
+    r.backing = (r.backing || []).map(b => ({ ...b, sym: transposeSym(b.sym, n, flat) }));
+  });
   song.voicings = {};
 }
 

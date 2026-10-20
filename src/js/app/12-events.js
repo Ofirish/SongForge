@@ -6,7 +6,12 @@ function bind() {
   $('#keySel').innerHTML = KEY_OPTIONS.map(k => `<option value="${k}">${pretty(parseKey(k).label)}</option>`).join('');
   $('#tuneSel').innerHTML = Object.entries(TUNINGS).map(([id, t]) => `<option value="${id}">${t.name}</option>`).join('');
   $('#strumSel').innerHTML = Object.entries(STRUMS).map(([id, s]) => `<option value="${id}">${s.name}</option>`).join('');
-  $('#songTitle').addEventListener('input', e => { song.title = e.target.value; save(); });
+  // the title is a one-line textarea so long titles wrap on phones; Enter finishes editing
+  const fitTitle = () => { const t = $('#songTitle'); t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; };
+  $('#songTitle').addEventListener('input', e => { song.title = e.target.value.replace(/\n/g, ' '); save(); fitTitle(); });
+  $('#songTitle').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); } });
+  window.addEventListener('resize', fitTitle);
+  window.fitTitle = fitTitle;
   $('#songArtist').addEventListener('input', e => { song.artist = e.target.value; save(); });
   $('#keySel').addEventListener('change', e => { song.key = e.target.value; ui.circleSel = null; renderHeader(); renderTools(); renderNeck(); save(); });
   $('#capoIn').addEventListener('change', e => { song.capo = clamp(+e.target.value || 0, 0, 12); renderHeader(); save(); });
@@ -66,11 +71,11 @@ function bind() {
       ui.editing.delete(si);
       songChanged();
     }
-    else if (act === 'dup') { song.sections.splice(si + 1, 0, JSON.parse(JSON.stringify(sec))); ui.editing.clear(); songChanged(); }
+    else if (act === 'dup') { song.sections.splice(si + 1, 0, JSON.parse(JSON.stringify(sec))); forgetPartIndexes(); songChanged(); }
     else if (act === 'up') moveSection(si, si - 1);
     else if (act === 'down') moveSection(si, si + 1);
     else if (act === 'del') {
-      if (ui.delArm === si) { if (Player.playing) Player.stop(); song.sections.splice(si, 1); ui.delArm = null; ui.editing.clear(); songChanged(); toast('Part deleted.'); }
+      if (ui.delArm === si) { if (Player.playing) Player.stop(); song.sections.splice(si, 1); forgetPartIndexes(); songChanged(); toast('Part deleted.'); }
       else { ui.delArm = si; renderSheet(); setTimeout(() => { if (ui.delArm === si) { ui.delArm = null; renderSheet(); } }, 3500); }
     }
   });
@@ -253,6 +258,10 @@ function bind() {
       try { navigator.clipboard.writeText(ta.value).then(() => { $('#expMsg').textContent = 'Copied.'; }, fallback); } catch (x) { fallback(); }
     }
     else if (id === 'impGo') importText($('#impText').value);
+    else if (e.target.dataset.restore != null) {
+      const b = readBackups()[+e.target.dataset.restore];
+      if (b) { try { loadSong(JSON.parse(b.json), `Restored “${b.title}” from ${new Date(b.t).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })}.`); closeModal(); } catch (x) { $('#impMsg').textContent = 'That copy couldn’t be read.'; } }
+    }
     else if (id === 'impSample') { loadSong(SAMPLE_SONG, 'Loaded the example song.'); closeModal(); }
     else if (id === 'impNew') { loadSong({ title:'Untitled song', key:'C', tempo:90, sections:[{ type:'verse', title:'[Verse 1]', lines:[{ chords:'C       G       Am      F', lyrics:'' }] }] }, 'Started a blank song.'); closeModal(); }
   });
@@ -268,7 +277,8 @@ function bind() {
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && !$('#modal').hidden) { closeModal(); return; }
     const tag = (e.target.tagName || '').toLowerCase();
-    if (e.key === ' ' && !['input','textarea','select','button'].includes(tag) && e.target.id !== 'tabGrid' && !e.target.closest('.cf-g')) { e.preventDefault(); if (Player.playing) Player.stop(); else playSong(); }
+    const popupOpen = !$('#modal').hidden || !$('#pdfModal').hidden;
+    if (e.key === ' ' && !popupOpen && !['input','textarea','select','button'].includes(tag) && e.target.id !== 'tabGrid' && !e.target.closest('.cf-g')) { e.preventDefault(); if (Player.playing) Player.stop(); else playSong(); }
   });
 }
 function applyTech(tech) {

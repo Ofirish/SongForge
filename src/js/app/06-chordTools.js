@@ -131,7 +131,7 @@ function circleToolHTML() {
     </div><p class="hint">“Set key” only relabels the key. “Transpose” moves every chord.</p>`;
   }
   return `<div class="cf-wrap">${circleSVG()}</div>
-    <div class="cf-legend"><span><i class="lg dia"></i>In the key</span><span><i class="lg used"></i>Used in this song</span><span><i class="lg rec"></i>Top next-chord picks</span></div>
+    <div class="cf-legend"><span><i class="cf-key-dot dia"></i>In the key</span><span><i class="cf-key-dot used"></i>Used in this song</span><span><i class="cf-key-dot rec"></i>Top next-chord picks</span></div>
     <p class="cf-note">Neighbours on the circle share six of seven notes. Moving counter-clockwise (toward ${esc(pretty(circleName(mod12(CIRCLE_MAJ.indexOf(key.minor ? mod12(key.tonic + 3) : key.tonic) - 1), false, key)))}) is the classic resolving fifth motion. The diminished vii° in ${esc(key.label)} is ${esc(pretty(diatonic(key)[key.minor ? 1 : 6].name))}.</p>
     ${acts}`;
 }

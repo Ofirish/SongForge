@@ -98,7 +98,7 @@ const AudioEngine = (() => {
 
 /* ---------- transport: look-ahead scheduler on eighth-note steps ---------- */
 const Player = {
-  playing:false, k:0, nextT:0, total:0, timer:null, raf:0, visQ:[], ending:false, endAt:0, passT0:0, frameFn:null,
+  playing:false, k:0, nextT:0, total:0, timer:null, raf:0, visQ:[], ending:false, endAt:0, frameFn:null, heard:null,
   /** Audio clock minus the device's output delay: what the listener is hearing right now. */
   heardTime() { const c = AudioEngine.ctx; return c.currentTime - (c.outputLatency || c.baseLatency || 0); },
   start({ steps, stepFn, visFn, onEnd, frameFn = null }) {
@@ -106,15 +106,15 @@ const Player = {
     const ctx = AudioEngine.init();
     if (!ctx) { toast('This browser has no Web Audio support.'); return; }
     Object.assign(this, { total:steps, k:0, nextT:ctx.currentTime + 0.08, stepFn, visFn, onEnd, frameFn, playing:true, ending:false, visQ:[] });
-    this.passT0 = this.nextT; this.passQ = [];
+    this.heard = null;
     this.timer = setInterval(() => this.tick(), 25);
     this.tick();
     const draw = () => {
       const now = this.heardTime();
-      while (this.visQ.length && this.visQ[0].t <= now) this.visFn(this.visQ.shift().k);
-      while (this.passQ.length > 1 && this.passQ[1] <= now) this.passQ.shift();
-      if (this.frameFn && !this.ending) this.frameFn((now - (this.passQ[0] ?? this.passT0)) / (60 / song.tempo / 2));
-      if (this.ending && now > this.endAt) { this.stop(); return; }
+      while (this.visQ.length && this.visQ[0].t <= now) { this.heard = this.visQ.shift(); this.visFn(this.heard.k); }
+      // fractional position = last step heard + time since it, so tempo changes and loops never drift
+      if (this.frameFn && this.heard && (!this.ending || now < this.endAt - 0.6)) this.frameFn(this.heard.k + Math.min(1, (now - this.heard.t) / this.heard.d));
+      if (this.ending && now > this.endAt) { this.stop(false, true); return; }
       this.raf = requestAnimationFrame(draw);
     };
     this.raf = requestAnimationFrame(draw);
@@ -124,21 +124,22 @@ const Player = {
     const stepDur = 60 / song.tempo / 2;
     while (this.playing && !this.ending && this.nextT < ctx.currentTime + 0.15) {
       if (this.k >= this.total) {
-        if (ui.loop) { this.k = 0; this.passQ.push(this.nextT); }
+        if (ui.loop) this.k = 0;
         else { this.ending = true; this.endAt = this.nextT + 0.6; break; }
       }
       this.stepFn(this.k, this.nextT);
-      this.visQ.push({ t:this.nextT, k:this.k });
+      this.visQ.push({ t:this.nextT, k:this.k, d:stepDur });
       this.k++;
       this.nextT += stepDur;
     }
   },
-  stop(silent) {
+  /** Stop playback. `natural` = it reached the end by itself, so let the last notes ring out. */
+  stop(silent, natural) {
     clearInterval(this.timer); cancelAnimationFrame(this.raf);
     const was = this.playing;
-    this.playing = false; this.ending = false; this.visQ = [];
+    this.playing = false; this.ending = false; this.visQ = []; this.heard = null;
     hidePlayDots();
-    if (was) { AudioEngine.stopAll(); if (this.onEnd) this.onEnd(); }
+    if (was) { if (!natural) AudioEngine.stopAll(); if (this.onEnd) this.onEnd(); }
     if (!silent) onTransportStop();
   },
 };
