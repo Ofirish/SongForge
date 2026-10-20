@@ -19,7 +19,7 @@ Owner: Ofir. The example song is "The Only Song That Brings Me Home", dedicated 
 
 ## Deploy / update flow
 - Push to `main` → `.github/workflows/deploy.yml` builds and deploys to GitHub Pages
-  (Settings → Pages → Source must be "GitHub Actions"). Live URL: https://ofirish.github.io/songforge/
+  (Settings → Pages → Source must be "GitHub Actions"). Live URL: https://ofirish.github.io/SongForge/
 - The same `index.html` can also be published as a Claude artifact. Inside the Claude viewer, file
   saves go through the `downloads` capability (publish with `capabilities: {downloads: true}`);
   standalone, `saveFile()` falls back to a normal browser download.

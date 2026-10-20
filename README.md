@@ -2,7 +2,7 @@
 
 A browser-based songwriting, tab and composition tool for guitar. Everything runs in one HTML file: no install, no server, no account.
 
-**Open it:** download `index.html` and double-click it, or use the hosted version on GitHub Pages: <https://ofirish.github.io/songforge/>.
+**Open it:** download `index.html` and double-click it, or use the hosted version on GitHub Pages: <https://ofirish.github.io/SongForge/>.
 
 ## What it does
 
