@@ -25,7 +25,7 @@ const INK = {
 const BG_IMG_KEY = 'songforge.bgimg.v1';
 
 let pdfOpts = Object.assign({ chords:true, lyrics:true, charts:true, tabs:true, details:true, size:'M', orient:'auto',
-  paper:'a4', ink:'color', bg:'blank', imgMode:'faded' }, prefs.pdf || {});
+  paper:'a4', ink:'color', bg:'blank', imgMode:'faded', border:'none', colLines:true }, prefs.pdf || {});
 let bgImage = null;                         // { src, w, h } raw upload (data URL)
 try { const s = localStorage.getItem(BG_IMG_KEY); if (s) bgImage = JSON.parse(s); } catch (e) {}
 const bgCache = new Map();                  // processed background JPEGs by key
@@ -271,7 +271,7 @@ function buildPdfBlocks(o, M) {
       } });
     });
     if (o.tabs) (sec.riffs || []).filter(a => a.place === 'fill').forEach(riffTag);
-    blocks.parts.push({ header, items, si });
+    blocks.parts.push({ header, items, si, color });
   });
   return blocks;
 }
@@ -281,15 +281,16 @@ function packPdf(o, orient, cols) {
   const M = pdfMetrics(o);
   const [pw, ph] = PAPER[o.paper] || PAPER.a4;
   const W = orient === 'landscape' ? ph : pw, H = orient === 'landscape' ? pw : ph;
-  const framed = o.bg === 'paper' || o.bg === 'frame';
+  const framed = o.bg === 'paper' || o.bg === 'frame' || o.border === 'page';
   const mx = 15, mt = framed ? 16 : 15, mb = framed ? 20 : 16, gutter = 9;
+  const boxed = o.border === 'parts', pad = boxed ? 3 : 0, padY = boxed ? 2.4 : 0;   // inner padding of part boxes
   const blocks = buildPdfBlocks(o, M);
   const fullW = W - mx * 2;
-  const colW = (fullW - gutter * (cols - 1)) / cols;
+  const colW = (fullW - gutter * (cols - 1)) / cols, innerW = colW - pad * 2;
   const pages = [];
   let page, col, y, colTop;
   const bottom = H - mb;
-  const newPage = () => { page = []; pages.push(page); col = 0; colTop = mt + (pages.length > 1 && o.bg === 'wood' ? 6 : 0); y = colTop; };
+  const newPage = () => { page = []; page.boxes = []; page.usedCols = 0; pages.push(page); col = 0; colTop = mt + (pages.length > 1 && o.bg === 'wood' ? 6 : 0); page.colTop = colTop; y = colTop; };
   newPage();
   // full-width header blocks on page 1
   blocks.head.forEach((b, i) => {
@@ -300,26 +301,34 @@ function packPdf(o, orient, cols) {
     if (i === 0) page.bandH = b.band ? y - 2 : 0;
     if (i === 0 && b.band) y += 4;              // breathing room under the band
   });
-  colTop = y;
-  const nextCol = () => { col++; if (col >= cols) { newPage(); } y = colTop; };
+  colTop = y; page.colTop = y;
+  const nextCol = () => { col++; if (col >= cols) { newPage(); } y = colTop; page.usedCols = Math.max(page.usedCols, col); };
   const colX = () => mx + col * (colW + gutter);
-  const colH = bottom - colTop;
   for (const part of blocks.parts) {
-    part.header.layoutW && part.header.layoutW(colW);
-    const its = part.items.map(it => { if (it.layoutW) it.layoutW(colW); return it; }).filter(it => it.h > 0);
+    part.header.layoutW && part.header.layoutW(innerW);
+    const its = part.items.map(it => { if (it.layoutW) it.layoutW(innerW); return it; }).filter(it => it.h > 0);
     if (!its.length) continue;
-    const total = part.header.h + its.reduce((a, it) => a + it.h, 0) + 4;
-    const minStart = part.header.h + (its[0] ? its[0].h : 0);
+    const total = part.header.h + its.reduce((a, it) => a + it.h, 0) + 4 + padY * 2;
+    const minStart = part.header.h + (its[0] ? its[0].h : 0) + padY * 2;
     if (y + total > bottom && (total <= bottom - colTop || y + minStart > bottom) && y > colTop + 0.1) nextCol();
-    page.push({ b:part.header, x:colX(), y, w:colW, cont:false }); y += part.header.h;
+    // a part can span columns/pages; each piece gets its own box
+    let seg = null;
+    const openSeg = cont => {
+      seg = { x:colX(), y0:y, w:colW, color:part.color };
+      y += padY;
+      page.push({ b:part.header, x:colX() + pad, y, w:innerW, cont }); y += part.header.h;
+    };
+    const closeSeg = () => { if (boxed && seg) { y += padY; page.boxes.push({ ...seg, y1:y }); } seg = null; };
+    openSeg(false);
     for (const it of its) {
-      if (y + it.h > bottom && y > colTop + part.header.h + 0.1) { nextCol(); page.push({ b:part.header, x:colX(), y, w:colW, cont:true }); y += part.header.h; }
-      page.push({ b:it, x:colX(), y, w:colW });
+      if (y + it.h + padY > bottom && y > colTop + part.header.h + padY + 0.1) { closeSeg(); nextCol(); openSeg(true); }
+      page.push({ b:it, x:colX() + pad, y, w:innerW });
       y += it.h;
     }
-    y += 5;
+    closeSeg();
+    y += boxed ? 4 : 5;
   }
-  return { pages, W, H, cols, M };
+  return { pages, W, H, cols, M, mx, colW, gutter, bottom };
 }
 /** Pick orientation/columns. */
 function planPdf(o) {
@@ -389,9 +398,19 @@ function drawBackground(p, o, W, H, pageIdx, bandH) {
 function drawPdfPage(p, plan, page, idx, o) {
   const { W, H } = plan, C = INK[o.ink];
   drawBackground(p, o, W, H, idx, plan.pages[0].bandH || 0);
+  if (o.border === 'page') p.rect(9, 9, W - 18, H - 18, { stroke:C.ink, width:0.4, r:1.5 });
+  // boxes around parts (drawn under the text)
+  (page.boxes || []).forEach(bx => p.rect(bx.x, bx.y0, bx.w, bx.y1 - bx.y0, { stroke: o.ink === 'color' ? bx.color : C.muted, width:0.35, r:2 }));
+  // vertical lines between columns (landscape), only beside columns that hold something
+  if (plan.cols > 1 && o.colLines) {
+    for (let i = 0; i < plan.cols - 1 && i < (page.usedCols || 0); i++) {
+      const x = plan.mx + plan.colW * (i + 1) + plan.gutter * (i + 0.5);
+      p.line(x, page.colTop + 1, x, plan.bottom - 1, 0.25, C.rule);
+    }
+  }
   page.forEach(e => e.b.draw(p, e.x, e.y, e.w, e.cont));
-  // footer (lifted clear of the border on framed backgrounds)
-  const fy = o.bg === 'paper' || o.bg === 'frame' ? H - 11.5 : H - 6.8;
+  // footer (lifted clear of the border on framed pages)
+  const fy = o.bg === 'paper' || o.bg === 'frame' || o.border === 'page' ? H - 11.5 : H - 6.8;
   p.line(15, fy - 3.7, W - 15, fy - 3.7, 0.2, C.rule);
   p.font('body', 7.5); p.color(C.muted);
   p.text(song.title + (song.artist ? ' — ' + song.artist : ''), 15, fy);
@@ -427,6 +446,9 @@ function renderPdfOptions() {
     <h3 class="po-h">Page</h3>
     <div class="po-row">${seg('orient', [['auto', 'Auto'], ['portrait', 'Portrait'], ['landscape', 'Landscape']])}${seg('paper', [['a4', 'A4'], ['letter', 'Letter']])}</div>
     <div class="po-row">${seg('ink', [['color', 'Colour'], ['saver', 'Ink saver']])}</div>
+    <h3 class="po-h">Borders and lines</h3>
+    <div class="po-row">${seg('border', [['none', 'No borders'], ['parts', 'Around parts'], ['page', 'Around page']])}</div>
+    <div class="pdf-togs">${tog('colLines', 'Lines between columns', 'Used when the page has columns, as in landscape')}</div>
     <h3 class="po-h">Background</h3>
     <div class="bg-tiles">${Object.entries(BG).map(([k, l]) => `<button class="bg-tile" data-bg="${k}" aria-pressed="${o.bg === k}"><i class="bt-${k}"${k === 'image' && bgImage ? ` style="background-image:url('${bgImage.thumb || bgImage.src}')"` : ''}></i><span>${l}</span></button>`).join('')}</div>
     <div class="bg-img"${o.bg === 'image' ? '' : ' hidden'}>
