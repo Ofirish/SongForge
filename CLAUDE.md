@@ -18,8 +18,9 @@ Owner: Ofir. The example song is "The Only Song That Brings Me Home", dedicated 
   `src/` and commit `index.html` together with the source change**, so the downloadable file stays current.
 
 ## Deploy / update flow
-- Push to `main` → `.github/workflows/deploy.yml` builds and deploys to GitHub Pages
-  (Settings → Pages → Source must be "GitHub Actions"). Live URL: https://ofirish.github.io/SongForge/
+- GitHub Pages deploys from the `main` branch root (Settings → Pages → "Deploy from a branch", main, /).
+  It serves the committed `index.html`, so a change is live only after `index.html` is rebuilt and pushed.
+  `.nojekyll` skips Jekyll processing. Live URL: https://ofirish.github.io/SongForge/
 - The same `index.html` can also be published as a Claude artifact. Inside the Claude viewer, file
   saves go through the `downloads` capability (publish with `capabilities: {downloads: true}`);
   standalone, `saveFile()` falls back to a normal browser download.

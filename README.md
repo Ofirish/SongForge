@@ -43,7 +43,7 @@ python3 scripts/build.py          # rebuild index.html
 python3 scripts/build.py --check  # confirm index.html matches src/
 ```
 
-Pushing to `main` deploys to GitHub Pages through `.github/workflows/deploy.yml`.
+GitHub Pages serves `index.html` straight from the `main` branch, so pushing a rebuilt `index.html` to `main` updates the live site within a minute or two.
 
 ## Credits
 
