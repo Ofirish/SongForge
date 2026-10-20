@@ -48,6 +48,7 @@ let modalTab = 'json';
 function renderModal() {
   document.querySelectorAll('#mTabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.m === modalTab));
   const body = $('#mBody');
+  if (modalTab === 'midi') { body.innerHTML = midiTabHTML(); return; }
   if (modalTab === 'import') {
     body.innerHTML = `<label class="fld block">Open a file<input type="file" id="impFile" accept=".json,.txt,.chordpro,text/plain,application/json"></label>
       <label class="fld block">Or paste song JSON or a chord sheet<textarea id="impText" rows="9" spellcheck="false" placeholder="[Verse 1]&#10;G        C        G&#10;The highway dust is settling…"></textarea></label>

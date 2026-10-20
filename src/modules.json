@@ -4,7 +4,8 @@
     "src/js/core/02-chordRecommender.js",
     "src/js/core/03-voicingFinder.js",
     "src/js/core/04-songModel.js",
-    "src/js/core/05-phraseGenerator.js"
+    "src/js/core/05-phraseGenerator.js",
+    "src/js/core/06-midiFile.js"
   ],
   "app": [
     "src/js/app/01-audioEngine.js",
@@ -21,7 +22,8 @@
     "src/js/app/12-events.js",
     "src/js/app/13-nowNext.js",
     "src/js/app/14-floatingWindows.js",
-    "src/js/app/15-guitarMenu.js"
+    "src/js/app/15-guitarMenu.js",
+    "src/js/app/16-midiExport.js"
   ],
   "pdf": [
     "src/js/pdf/01-pdfExport.js"

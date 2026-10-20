@@ -330,6 +330,11 @@ code{font-family:var(--f-mono);font-size:.92em}
 .pdf-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
 .pdf-foot .hint{margin:0}
 
+/* midi export */
+.midi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:4px 18px}
+.pdf-tog.off{opacity:.5;cursor:default}
+.pdf-tog input[type=radio]{accent-color:var(--brass);margin-top:3px}
+
 /* modal + toast */
 .modal{position:fixed;inset:0;z-index:70;background:color-mix(in oklab, var(--bg) 70%, transparent);display:grid;place-items:center;padding:max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px))}
 .modal-card{width:min(720px, 100%);max-height:100%;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.35)}

@@ -115,7 +115,7 @@
             <button class="btn sm" data-gatt="over">Over the part</button><button class="btn sm" data-gatt="lead">Lead-in</button><button class="btn sm" data-gatt="fill">Fill</button></div>
         </div>
         <div class="riff-head"><span class="rh-lab">Editing</span><input id="tabName" aria-label="Riff name" spellcheck="false">
-          <button class="btn sm" id="riffDup">Duplicate</button><button class="btn sm" id="riffDel">Delete</button></div>
+          <button class="btn sm" id="riffMidi">Save as MIDI</button><button class="btn sm" id="riffDup">Duplicate</button><button class="btn sm" id="riffDel">Delete</button></div>
         <div class="tab-tools" id="tabTools">
           <button class="btn primary" id="tabPlay"></button>
           <span class="sep"></span>
@@ -148,7 +148,7 @@
   <div class="modal" id="modal" hidden>
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="mTitle">
       <div class="modal-h"><h2 id="mTitle">Import / Export</h2><button class="btn" id="mClose">Close</button></div>
-      <nav class="seg" id="mTabs"><button data-m="json">Song file (JSON)</button><button data-m="text">Chord sheet + tab</button><button data-m="import">Import</button></nav>
+      <nav class="seg" id="mTabs"><button data-m="json">Song file (JSON)</button><button data-m="text">Chord sheet + tab</button><button data-m="midi">MIDI</button><button data-m="import">Import</button></nav>
       <div id="mBody"></div>
     </div>
   </div>

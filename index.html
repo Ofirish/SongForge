@@ -342,6 +342,11 @@ code{font-family:var(--f-mono);font-size:.92em}
 .pdf-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
 .pdf-foot .hint{margin:0}
 
+/* midi export */
+.midi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:4px 18px}
+.pdf-tog.off{opacity:.5;cursor:default}
+.pdf-tog input[type=radio]{accent-color:var(--brass);margin-top:3px}
+
 /* modal + toast */
 .modal{position:fixed;inset:0;z-index:70;background:color-mix(in oklab, var(--bg) 70%, transparent);display:grid;place-items:center;padding:max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px))}
 .modal-card{width:min(720px, 100%);max-height:100%;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
@@ -604,7 +609,7 @@ code{font-family:var(--f-mono);font-size:.92em}
             <button class="btn sm" data-gatt="over">Over the part</button><button class="btn sm" data-gatt="lead">Lead-in</button><button class="btn sm" data-gatt="fill">Fill</button></div>
         </div>
         <div class="riff-head"><span class="rh-lab">Editing</span><input id="tabName" aria-label="Riff name" spellcheck="false">
-          <button class="btn sm" id="riffDup">Duplicate</button><button class="btn sm" id="riffDel">Delete</button></div>
+          <button class="btn sm" id="riffMidi">Save as MIDI</button><button class="btn sm" id="riffDup">Duplicate</button><button class="btn sm" id="riffDel">Delete</button></div>
         <div class="tab-tools" id="tabTools">
           <button class="btn primary" id="tabPlay"></button>
           <span class="sep"></span>
@@ -637,7 +642,7 @@ code{font-family:var(--f-mono);font-size:.92em}
   <div class="modal" id="modal" hidden>
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="mTitle">
       <div class="modal-h"><h2 id="mTitle">Import / Export</h2><button class="btn" id="mClose">Close</button></div>
-      <nav class="seg" id="mTabs"><button data-m="json">Song file (JSON)</button><button data-m="text">Chord sheet + tab</button><button data-m="import">Import</button></nav>
+      <nav class="seg" id="mTabs"><button data-m="json">Song file (JSON)</button><button data-m="text">Chord sheet + tab</button><button data-m="midi">MIDI</button><button data-m="import">Import</button></nav>
       <div id="mBody"></div>
     </div>
   </div>
@@ -1485,6 +1490,103 @@ function generatePhrase(kind, backing, key, tuning, seed) {
     notes[n.step + ':' + p.s] = { f, t };
   });
   return { steps, notes, backing:back };
+}
+
+/* ---- src/js/core/06-midiFile.js ---- */
+/* ================================================================
+   midiFile.js — Standard MIDI File and ZIP writers (no DOM)
+   ================================================================ */
+const MIDI_PPQ = 480;                       // ticks per quarter note; one tab step (eighth) = 240
+
+/** Growable byte buffer (avoids spreading huge arrays into push()). */
+class ByteBuf {
+  constructor() { this.a = []; }
+  u8(...v) { for (const x of v) this.a.push(x & 0xFF); return this; }
+  u16(n) { return this.u8(n >> 8, n); }
+  u32(n) { return this.u8(n >>> 24, n >>> 16, n >>> 8, n); }
+  le16(n) { return this.u8(n, n >> 8); }
+  le32(n) { return this.u8(n, n >>> 8, n >>> 16, n >>> 24); }
+  bytes(arr) { for (let i = 0; i < arr.length; i++) this.a.push(arr[i] & 0xFF); return this; }
+  vlq(n) {
+    n = Math.max(0, Math.round(n));
+    const b = [n & 0x7F];
+    while ((n >>= 7) > 0) b.unshift((n & 0x7F) | 0x80);
+    return this.bytes(b);
+  }
+  toUint8() { return Uint8Array.from(this.a); }
+}
+const utf8 = s => Array.from(new TextEncoder().encode(String(s)));
+
+/** Meta event at tick t. type: 0x03 track name, 0x05 lyric, 0x06 marker, 0x51 tempo, 0x58 time sig, 0x59 key sig. */
+function midiMeta(t, type, data) { return { t, o:-1, d:[0xFF, type, ...vlqBytes(data.length), ...data] }; }
+function vlqBytes(n) { const b = new ByteBuf(); b.vlq(n); return b.a; }
+function midiTempo(t, bpm) { const us = Math.round(60000000 / bpm); return midiMeta(t, 0x51, [us >> 16 & 0xFF, us >> 8 & 0xFF, us & 0xFF]); }
+function midiKeySig(t, key) {
+  // sharps (+) / flats (-) of the key signature, from its relative major
+  const major = key.minor ? mod12(key.tonic + 3) : key.tonic;
+  const i = [0,7,2,9,4,11,6,1,8,3,10,5].indexOf(major);
+  const sf = i <= 5 ? i : i === 6 ? (key.flat ? -6 : 6) : i - 12;
+  return midiMeta(t, 0x59, [sf & 0xFF, key.minor ? 1 : 0]);
+}
+/** Pitch-bend event; `semis` relative to a bend range of `range` semitones. */
+function midiBend(t, ch, semis, range) {
+  const v = clamp(Math.round(8192 + semis / range * 8191), 0, 16383);
+  return { t, o:0, d:[0xE0 | ch, v & 0x7F, v >> 7 & 0x7F] };
+}
+/** Notes [{t, dur, ch, key, vel}] → note on/off events. A repeated key cuts the previous one off first. */
+function notesToEvents(notes) {
+  const sorted = notes.slice().sort((a, b) => a.t - b.t);
+  const open = new Map(), recs = [];
+  for (const n of sorted) {
+    const k = n.ch * 128 + n.key, prev = open.get(k);
+    if (prev && prev.off > n.t) prev.off = n.t;
+    const r = { n, on:Math.round(n.t), off:Math.round(n.t + Math.max(1, n.dur)) };
+    open.set(k, r); recs.push(r);
+  }
+  const ev = [];
+  for (const r of recs) {
+    ev.push({ t:r.on, o:1, d:[0x90 | r.n.ch, clamp(r.n.key, 0, 127), clamp(Math.round(r.n.vel), 1, 127)] });
+    ev.push({ t:Math.max(r.on + 1, r.off), o:0, d:[0x80 | r.n.ch, clamp(r.n.key, 0, 127), 0] });
+  }
+  return ev;
+}
+/** One MTrk chunk from events [{t, o, d}]; same-tick order: meta (-1), offs/bends (0), ons (1). */
+function encodeMidiTrack(events) {
+  const ev = events.map((e, i) => ({ ...e, i })).sort((a, b) => a.t - b.t || (a.o || 0) - (b.o || 0) || a.i - b.i);
+  const body = new ByteBuf();
+  let last = 0;
+  for (const e of ev) { const t = Math.max(0, Math.round(e.t)); body.vlq(t - last).bytes(e.d); last = t; }
+  body.u8(0x00, 0xFF, 0x2F, 0x00);
+  const out = new ByteBuf();
+  out.bytes([0x4D, 0x54, 0x72, 0x6B]).u32(body.a.length).bytes(body.a);
+  return out.a;
+}
+/** Whole file. format 0 = one track, 1 = several tracks played together. */
+function encodeMidiFile(format, trackChunks) {
+  const out = new ByteBuf();
+  out.bytes([0x4D, 0x54, 0x68, 0x64]).u32(6).u16(format).u16(trackChunks.length).u16(MIDI_PPQ);
+  trackChunks.forEach(c => out.bytes(c));
+  return out.toUint8();
+}
+
+/* ---------- ZIP (stored, no compression) for several files in one download ---------- */
+const CRC_TABLE = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(u8) { let c = 0xFFFFFFFF; for (let i = 0; i < u8.length; i++) c = CRC_TABLE[(c ^ u8[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+/** files: [{name, data:Uint8Array}] → Uint8Array of a .zip */
+function zipStore(files) {
+  const out = new ByteBuf(), central = new ByteBuf();
+  const now = new Date();
+  const dosTime = (now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1);
+  const dosDate = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+  files.forEach(f => {
+    const name = utf8(f.name), crc = crc32(f.data), offset = out.a.length;
+    out.le32(0x04034B50).le16(20).le16(0x0800).le16(0).le16(dosTime).le16(dosDate).le32(crc).le32(f.data.length).le32(f.data.length).le16(name.length).le16(0).bytes(name).bytes(f.data);
+    central.le32(0x02014B50).le16(20).le16(20).le16(0x0800).le16(0).le16(dosTime).le16(dosDate).le32(crc).le32(f.data.length).le32(f.data.length)
+      .le16(name.length).le16(0).le16(0).le16(0).le16(0).le32(0).le32(offset).bytes(name);
+  });
+  const cdOffset = out.a.length;
+  out.bytes(central.a).le32(0x06054B50).le16(0).le16(0).le16(files.length).le16(files.length).le32(central.a.length).le32(cdOffset).le16(0);
+  return out.toUint8();
 }
 
 </script>
@@ -2576,6 +2678,7 @@ let modalTab = 'json';
 function renderModal() {
   document.querySelectorAll('#mTabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.m === modalTab));
   const body = $('#mBody');
+  if (modalTab === 'midi') { body.innerHTML = midiTabHTML(); return; }
   if (modalTab === 'import') {
     body.innerHTML = `<label class="fld block">Open a file<input type="file" id="impFile" accept=".json,.txt,.chordpro,text/plain,application/json"></label>
       <label class="fld block">Or paste song JSON or a chord sheet<textarea id="impText" rows="9" spellcheck="false" placeholder="[Verse 1]&#10;G        C        G&#10;The highway dust is settling…"></textarea></label>
@@ -3196,6 +3299,239 @@ renderAll();
 bindExtras();
 setNow(null, 'Ready');
 syncTransport();
+
+/* ---- src/js/app/16-midiExport.js ---- */
+/* ================================================================
+   midiExport.js — the song (or one riff) as MIDI
+   Mirrors what playback does: same strum pattern, voicings, riff
+   placement and lead-in offset, so the file sounds like the app.
+   ================================================================ */
+const MIDI_CH = { chords:0, riffs:1, click:9 };
+const MIDI_PROGRAM = { chords:25, riffs:25 };          // GM 26 "Acoustic Guitar (steel)", zero-based
+const RIFF_BEND_RANGE = 12;                            // semitones, so slides of up to an octave fit
+let midiOpts = Object.assign({ chords:true, riffs:true, click:false, markers:true, lyrics:true, capo:true, output:'multi' }, prefs.midi || {});
+function saveMidiOpts() { prefs.midi = midiOpts; savePrefs(); }
+
+const ticksPerSec = () => MIDI_PPQ * song.tempo / 60;
+const stepTick = k => k * MIDI_PPQ / 2;
+const midiPitch = (s, f, o) => tuning()[s] + f + (o.capo ? song.capo : 0);
+function voicingPitches(sym, o) {
+  const v = voicingFor(sym);
+  return v ? v.frets.map((f, s) => f >= 0 ? midiPitch(s, f, o) : null).filter(x => x != null) : [];
+}
+
+/**
+ * Note lists for a timeline.
+ * events: chord events {beat, beats, sym, si?, li?}; items: riffSchedule-style placements.
+ * Returns { chords, riffs, riffExtra, click, conductor, totalBeats }.
+ */
+function midiFromTimeline(events, totalBeats, items, o, meta) {
+  const steps = Math.ceil(totalBeats * 2), T = ticksPerSec(), sec = s => Math.round(s * T);
+  const out = { chords:[], riffs:[], riffExtra:[], click:[], conductor:[], totalBeats };
+
+  // conductor: name, tempo, metre, key, part markers, lyrics
+  out.conductor.push(midiMeta(0, 0x03, utf8(pdfSafe(meta.title))), midiTempo(0, song.tempo), midiMeta(0, 0x58, [4, 2, 24, 8]), midiKeySig(0, parseKey(song.key)));
+  if (meta.markers || meta.lyrics) {
+    const seenSec = new Set(), seenLine = new Set();
+    events.forEach(e => {
+      if (e.si == null) return;
+      const sk = e.si + ':' + e.rep, lk = sk + ':' + e.li;
+      if (meta.markers && !seenSec.has(sk)) {
+        seenSec.add(sk);
+        const s = song.sections[e.si];
+        out.conductor.push(midiMeta(stepTick(e.beat * 2), 0x06, utf8(pdfSafe(secName(s) + (s.repeat > 1 ? ` (${e.rep + 1}/${s.repeat})` : '')))));
+      }
+      if (meta.lyrics && !seenLine.has(lk)) {
+        seenLine.add(lk);
+        const ly = (song.sections[e.si].lines[e.li] || {}).lyrics || '';
+        if (ly.trim()) out.conductor.push(midiMeta(stepTick(e.beat * 2), 0x05, utf8(ly.trim() + ' ')));
+      }
+    });
+  }
+
+  // chords: the strum pattern, quieter while a riff plays (same as playback)
+  if (o.chords) {
+    const stepEv = new Int32Array(steps).fill(-1);
+    events.forEach((e, i) => { for (let k = e.beat * 2; k < (e.beat + e.beats) * 2 && k < steps; k++) stepEv[k] = i; });
+    const duck = new Uint8Array(steps);
+    items.forEach(it => { for (let k = Math.round(it.start * 2); k < Math.min(steps, Math.round(it.end * 2)); k++) duck[k] = 1; });
+    const pat = STRUMS[song.strum].p, ring = Math.round(MIDI_PPQ * 1.8);
+    for (let k = 0; k < steps; k++) {
+      const i = stepEv[k]; if (i < 0) continue;
+      const e = events[i], m = voicingPitches(e.sym, o); if (!m.length) continue;
+      const change = k === e.beat * 2, ch = pat[k % 8], t0 = stepTick(k);
+      const lvl = duck[k] ? Math.max(0.35, prefs.duck / 100) : 1;
+      if (ch === 'A') {
+        const n = m.length, order = [0, n - 3, n - 2, n - 1, n - 2, n - 3, n - 2, n - 1].map(x => clamp(x, 0, n - 1));
+        const idx = change ? 0 : order[k % 8];
+        out.chords.push({ t:t0, dur:Math.round(MIDI_PPQ * 1.5), ch:MIDI_CH.chords, key:m[idx], vel:(idx === 0 ? 92 : 72) * lvl });
+        continue;
+      }
+      if ((ch === '-' || ch === 'W') && !change) continue;
+      const dir = ch === 'U' && !change ? 'up' : 'down', accent = change || k % 8 === 0;
+      const list = dir === 'up' ? m.slice(-4).reverse() : m;
+      const vel = (accent ? 100 : dir === 'up' ? 66 : 84) * lvl, spread = sec(dir === 'up' ? 0.0096 : 0.016);
+      list.forEach((p, j) => out.chords.push({ t:t0 + j * spread, dur:ring, ch:MIDI_CH.chords, key:p, vel:vel * (1 - j * 0.04) }));
+    }
+  }
+
+  // riffs: notes plus pitch bends for bends, slides and vibrato
+  if (o.riffs && items.length) {
+    const ch = MIDI_CH.riffs;
+    out.riffExtra.push(  // pitch-bend range = 12 semitones (RPN 0), then close the RPN
+      { t:0, o:-0.5, d:[0xB0 | ch, 101, 0] }, { t:0, o:-0.5, d:[0xB0 | ch, 100, 0] }, { t:0, o:-0.5, d:[0xB0 | ch, 6, RIFF_BEND_RANGE] },
+      { t:0, o:-0.5, d:[0xB0 | ch, 38, 0] }, { t:0, o:-0.5, d:[0xB0 | ch, 101, 127] }, { t:0, o:-0.5, d:[0xB0 | ch, 100, 127] });
+    let bent = false;
+    const bend = (t, semis) => { out.riffExtra.push(midiBend(t, ch, semis, RIFF_BEND_RANGE)); bent = semis !== 0; };
+    items.forEach(it => {
+      const r = it.riff, s0 = Math.round(it.start * 2), s1 = Math.round(it.end * 2);
+      for (let c = 0; c < r.steps && s0 + c < s1; c++) for (let s = 0; s < 6; s++) {
+        const n = r.notes[c + ':' + s]; if (!n) continue;
+        const t = stepTick(s0 + c);
+        let next = null;
+        for (let c2 = c + 1; c2 < r.steps && s0 + c2 < s1; c2++) if (r.notes[c2 + ':' + s]) { next = c2; break; }
+        const dur = next != null ? (next - c) * MIDI_PPQ / 2 : Math.round(MIDI_PPQ * 2.2);
+        if (n.f === 'x') { out.riffs.push({ t, dur:sec(0.05), ch, key:midiPitch(s, 5, o), vel:48 }); continue; }
+        const key = midiPitch(s, n.f, o);
+        if (bent) bend(t, 0);
+        out.riffs.push({ t, dur, ch, key, vel: n.t === 'h' || n.t === 'p' ? 62 : 96 });
+        if (n.t === 'b') {
+          for (let j = 1; j <= 6; j++) bend(t + sec(0.06 + 0.18 * j / 6), 2 * j / 6);
+          bend(t + dur - 2, 0);
+        } else if (n.t === '/' || n.t === '\\') {
+          let from = null;
+          for (let c2 = c - 1; c2 >= 0; c2--) { const pn = r.notes[c2 + ':' + s]; if (pn && pn.f !== 'x') { from = midiPitch(s, pn.f, o); break; } }
+          if (from == null) from = key + (n.t === '/' ? -2 : 2);
+          const d = clamp(from - key, -RIFF_BEND_RANGE, RIFF_BEND_RANGE);
+          for (let j = 0; j <= 5; j++) bend(t + sec(0.09 * j / 5), d * (1 - j / 5));
+        } else if (n.t === '~') {
+          let up = true;
+          for (let tt = t + sec(0.15); tt < t + dur - sec(0.05); tt += sec(0.045), up = !up) bend(tt, up ? 0.2 : -0.2);
+          bend(t + dur - 2, 0);
+        }
+      }
+    });
+  }
+
+  // click: woodblock on the drum channel, accent on beat 1
+  if (o.click) for (let b = 0; b < Math.ceil(totalBeats); b++) out.click.push({ t:stepTick(b * 2), dur:60, ch:MIDI_CH.click, key: b % 4 === 0 ? 76 : 77, vel: b % 4 === 0 ? 110 : 80 });
+  return out;
+}
+const pdfSafe = s => String(s || '').replace(/♯/g, '#').replace(/♭/g, 'b');
+
+/** The selected tracks as {name, events} lists. */
+function midiTracks(parts, o) {
+  const tracks = [];
+  const named = (name, ch, program, notes, extra = []) => {
+    const ev = [midiMeta(0, 0x03, utf8(name))];
+    if (program != null) ev.push({ t:0, o:-0.5, d:[0xC0 | ch, program] });
+    return { name, events: ev.concat(extra, notesToEvents(notes)) };
+  };
+  if (o.chords && parts.chords.length) tracks.push(named('Chords', MIDI_CH.chords, MIDI_PROGRAM.chords, parts.chords));
+  if (o.riffs && parts.riffs.length) tracks.push(named('Riffs', MIDI_CH.riffs, MIDI_PROGRAM.riffs, parts.riffs, parts.riffExtra));
+  if (o.click && parts.click.length) tracks.push(named('Click', MIDI_CH.click, null, parts.click));
+  return tracks;
+}
+/** Build the file(s) for the chosen output: one multi-track file, one merged track, or one file per track. */
+function midiOutputs(parts, o, baseName) {
+  const tracks = midiTracks(parts, o);
+  if (!tracks.length) return [];
+  if (o.output === 'single') {
+    const all = parts.conductor.concat(...tracks.map(t => t.events.filter(e => !(e.d[0] === 0xFF && e.d[1] === 0x03))));
+    return [{ name: baseName + '.mid', data: encodeMidiFile(0, [encodeMidiTrack(all)]) }];
+  }
+  if (o.output === 'separate') {
+    return tracks.map(t => ({ name: `${baseName} - ${t.name}.mid`, data: encodeMidiFile(1, [encodeMidiTrack(parts.conductor), encodeMidiTrack(t.events)]) }));
+  }
+  return [{ name: baseName + '.mid', data: encodeMidiFile(1, [encodeMidiTrack(parts.conductor), ...tracks.map(t => encodeMidiTrack(t.events))]) }];
+}
+function songMidiParts(o) {
+  const tl = buildTimeline(song);
+  const sched = o.riffs ? riffSchedule(song, tl.events) : { offset:0, items:[] };
+  const events = tl.events.map(e => ({ ...e, beat:e.beat + sched.offset }));
+  const total = Math.max(tl.totalBeats + sched.offset, ...sched.items.map(i => i.end), 1);
+  return midiFromTimeline(events, total, sched.items, o, { title:song.title, markers:o.markers, lyrics:o.lyrics });
+}
+function riffMidiParts(riff, o, withChords) {
+  let acc = 0;
+  const events = withChords ? (riff.backing || []).map(b => { const e = { beat:acc, beats:b.beats, sym:b.sym }; acc += b.beats; return e; }) : [];
+  const items = [{ riff, start:0, end:riff.steps / 2, si:null, idx:0, place:'over' }];
+  return midiFromTimeline(events, riff.steps / 2, items, { ...o, chords:withChords && events.length > 0, riffs:true }, { title:riff.name, markers:false, lyrics:false });
+}
+/** Save: a lone .mid when possible; a .zip for several files, or inside the Claude viewer (which can't save .mid). */
+async function saveMidiFiles(files, baseName) {
+  const inClaude = !!(window.claude && typeof window.claude.use === 'function');
+  if (files.length === 1 && !inClaude) return { how: await saveFile(files[0].name, files[0].data, 'audio/midi'), zipped:false };
+  const zip = zipStore(files.map(f => ({ name:f.name.replace(/[\\/:*?"<>|]+/g, ''), data:f.data })));
+  return { how: await saveFile(baseName + ' MIDI.zip', zip, 'application/zip'), zipped:true };
+}
+
+/* ---------- UI: Import / Export → MIDI tab ---------- */
+function midiTabHTML() {
+  const o = midiOpts;
+  const tl = buildTimeline(song);
+  const placed = song.sections.reduce((a, s) => a + (s.riffs || []).length, 0);
+  const tog = (k, label, sub, dis) => `<label class="pdf-tog${dis ? ' off' : ''}"><input type="checkbox" data-mo="${k}" id="mo-${k}"${o[k] ? ' checked' : ''}${dis ? ' disabled' : ''}><span><b>${label}</b><small>${sub}</small></span></label>`;
+  const radio = (k, v, label, sub) => `<label class="pdf-tog"><input type="radio" name="mo-${k}" data-mr="${k}" value="${v}" id="mr-${k}-${v}"${o[k] === v ? ' checked' : ''}><span><b>${label}</b><small>${sub}</small></span></label>`;
+  const inClaude = !!(window.claude && typeof window.claude.use === 'function');
+  return `<div class="midi-grid">
+    <div>
+      <h3 class="po-h">Tracks</h3>
+      <div class="pdf-togs">
+        ${tog('chords', 'Chords', `Strummed with “${STRUMS[song.strum].name}” and your chosen shapes`)}
+        ${tog('riffs', 'Riffs', placed ? `${placed} placed in the song, with bends and slides` : 'No riffs are placed in the song yet', !placed)}
+        ${tog('click', 'Click track', 'Woodblock on every beat, drum channel')}
+      </div>
+      <h3 class="po-h">Song info</h3>
+      <div class="pdf-togs">
+        ${tog('markers', 'Part markers', 'Verse, Chorus… shown in your DAW timeline')}
+        ${tog('lyrics', 'Lyrics', 'As lyric events, shown karaoke-style by some players')}
+        ${tog('capo', 'Sounding pitch', song.capo ? `Includes capo ${song.capo}; off writes the chord shapes' pitch` : 'Applies the capo when there is one')}
+      </div>
+    </div>
+    <div>
+      <h3 class="po-h">Save as</h3>
+      <div class="pdf-togs">
+        ${radio('output', 'multi', 'One file, separate tracks', 'Each part on its own track (best for a DAW)')}
+        ${radio('output', 'single', 'One file, a single track', 'Everything merged into one track')}
+        ${radio('output', 'separate', 'Separate files', 'One file per track, together in a .zip')}
+      </div>
+      <p class="msg">${fmtTime(tl.totalBeats * 60 / song.tempo)} at ${song.tempo} BPM · ${esc(TUNINGS[song.tuning].name)}</p>
+      ${inClaude ? '<p class="hint">Inside Claude, MIDI files are saved in a .zip (the viewer can’t save .mid directly). The GitHub Pages version saves a plain .mid.</p>' : ''}
+      <div class="ed-acts"><button class="btn primary" id="midiSave">Save MIDI</button></div>
+      <p class="msg" id="midiMsg"></p>
+    </div>
+  </div>`;
+}
+async function doSaveMidi() {
+  const o = midiOpts, base = safeName(song.title);
+  const files = midiOutputs(songMidiParts(o), o, base);
+  if (!files.length) { $('#midiMsg').textContent = 'Choose at least one track to save.'; return; }
+  try {
+    const r = await saveMidiFiles(files, base);
+    $('#midiMsg').textContent = (r.how === 'saved' ? 'Saved' : 'Downloaded') + (r.zipped ? ` a .zip with ${files.length} MIDI file${files.length > 1 ? 's' : ''}.` : '.');
+  } catch (e) { $('#midiMsg').textContent = saveErrorText(e, 'MIDI file'); }
+}
+async function saveRiffMidi() {
+  const r = song.tab;
+  if (!Object.keys(r.notes).length) { toast('This riff has no notes yet.'); return; }
+  const withChords = $('#backingChk').checked && (r.backing || []).length > 0;
+  const parts = riffMidiParts(r, { ...midiOpts, click:false }, withChords);
+  const files = midiOutputs(parts, { ...midiOpts, chords:withChords, riffs:true, click:false, output:'multi' }, safeName(r.name));
+  try { const res = await saveMidiFiles(files, safeName(r.name)); toast(`${res.how === 'saved' ? 'Saved' : 'Downloaded'} “${r.name}” as MIDI${withChords ? ' with its chords' : ''}${res.zipped ? ' (in a .zip)' : ''}.`); }
+  catch (e) { toast(saveErrorText(e, 'MIDI file')); }
+}
+function bindMidi() {
+  const body = $('#mBody');
+  body.addEventListener('change', e => {
+    const t = e.target;
+    if (t.dataset.mo) { midiOpts[t.dataset.mo] = t.checked; saveMidiOpts(); }
+    if (t.dataset.mr) { midiOpts[t.dataset.mr] = t.value; saveMidiOpts(); }
+  });
+  body.addEventListener('click', e => { if (e.target.id === 'midiSave') doSaveMidi(); });
+  $('#riffMidi').addEventListener('click', saveRiffMidi);
+}
+bindMidi();
 
 </script>
 <script>

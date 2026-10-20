@@ -44,6 +44,12 @@ Owner: Ofir. The example song is "The Only Song That Brings Me Home", dedicated 
   (`s` 0 = low string; `steps` are eighth notes, 8 per bar). `activeRiff` is the one open in the Tab editor.
 - Older songs with a single `tab` object are migrated into `riffs` by `normalizeSong()`.
 
+## MIDI export
+- `src/js/core/06-midiFile.js`: Standard MIDI File + stored ZIP writers (pure). `src/js/app/16-midiExport.js`: builds notes the
+  same way playback does (strum pattern, voicings, riff placement, lead-in offset); Import / Export → MIDI tab and the
+  "Save as MIDI" button for the open riff. Tracks: Chords (ch 1), Riffs (ch 2, bend range 12 via RPN), Click (ch 10).
+  Outputs: one type-1 file, one merged type-0 track, or one file per track in a .zip. Inside the Claude viewer `.mid`
+  isn't an allowed download type, so MIDI is always zipped there.
+
 ## Known limits
 - Print fonts are Latin subsets: Hebrew lyrics print as "?" (the PDF panel warns). Adding a Hebrew font is a planned option.
-- MIDI export is not built yet.
