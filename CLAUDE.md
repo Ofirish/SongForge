@@ -8,6 +8,10 @@ a funny song about writing songs, with three example riffs (intro over the Intro
 - For new features: check, plan and explain the plan first; build only after he approves.
   Small fixes and direct "execute" requests can go straight in.
 - Keep the UI low-latency and musician-friendly; dark-first design with a light theme.
+- Theme: dark by default; the Light/Dark button stores the choice in `localStorage['songforge.theme']` and an inline
+  script in the template applies it (`data-sf-theme` on `<html>`) before first paint. The OS/viewer theme is ignored on purpose.
+- Help: the Help button opens a searchable help page (`src/js/app/17-helpAndTheme.js`, `HELP` array).
+  **When a feature is added or changed, update its help section in the same commit.**
 
 ## Structure
 - Source lives in `src/` as modules; `src/modules.json` sets the order they are concatenated in.

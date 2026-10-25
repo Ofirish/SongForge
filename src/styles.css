@@ -8,11 +8,8 @@
   --f-mono:"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
   color-scheme:dark;
 }
-@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]){
-  --bg:#ebe7e1; --panel:#faf8f5; --raised:#f1ede7; --line:#d6cec3; --fg:#251b15; --muted:#6d6056;
-  --brass:#9b6510; --brass-ink:#fff8ec; --teal:#1f7b67; --rose:#b34f2f; --plum:#7a4fa3; --slate:#466684;
-  --wood:#3b2a20; --wood-line:#6e5949; --fret:#d4ccbf; --string:#eee6da; --inlay:#f3ece0; color-scheme:light; } }
-:root[data-theme="light"]{
+/* Dark is the default; light only when chosen with the theme button (remembered per browser) */
+:root[data-sf-theme="light"]{
   --bg:#ebe7e1; --panel:#faf8f5; --raised:#f1ede7; --line:#d6cec3; --fg:#251b15; --muted:#6d6056;
   --brass:#9b6510; --brass-ink:#fff8ec; --teal:#1f7b67; --rose:#b34f2f; --plum:#7a4fa3; --slate:#466684;
   --wood:#3b2a20; --wood-line:#6e5949; --fret:#d4ccbf; --string:#eee6da; --inlay:#f3ece0; color-scheme:light; }
@@ -334,6 +331,37 @@ code{font-family:var(--f-mono);font-size:.92em}
 .midi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:4px 18px}
 .pdf-tog.off{opacity:.5;cursor:default}
 .pdf-tog input[type=radio]{accent-color:var(--brass);margin-top:3px}
+
+/* theme toggle */
+.theme-btn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
+
+/* help */
+.help-card{width:min(1080px, 100%);height:min(860px, 100%);display:flex;flex-direction:column}
+.help-body{display:grid;grid-template-columns:220px minmax(0,1fr);gap:20px;min-height:0;flex:1}
+@media (max-width:760px){.help-body{grid-template-columns:minmax(0,1fr);overflow:auto}.help-toc{display:none}}
+.help-side{display:flex;flex-direction:column;gap:10px;min-height:0}
+.help-search{font:500 14px var(--f-body);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+.help-toc{overflow:auto;display:flex;flex-direction:column;gap:1px}
+.help-toc a{color:var(--muted);text-decoration:none;font-size:13px;font-weight:600;padding:5px 8px;border-radius:6px}
+.help-toc a:hover,.help-toc a.on{color:var(--fg);background:var(--raised)}
+.help-main{overflow:auto;padding-right:6px;min-width:0;scroll-behavior:smooth}
+.help-main section{padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid var(--line);scroll-margin-top:4px}
+.help-main section:last-child{border-bottom:0}
+.help-main h3{font-family:var(--f-display);font-weight:400;font-size:21px;margin:0 0 8px}
+.help-main h4{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--brass);margin:14px 0 6px}
+.help-main p,.help-main li{font-size:14px;line-height:1.6;max-width:72ch}
+.help-main p{margin:0 0 8px}
+.help-main ul,.help-main ol{margin:0 0 8px;padding-left:20px}
+.help-main li{margin-bottom:3px}
+.help-main kbd{font:600 12px var(--f-mono);background:var(--raised);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 6px;white-space:nowrap}
+.help-main code{font:600 13px var(--f-mono);color:var(--brass)}
+.help-main pre{font:13px/1.45 var(--f-mono);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;overflow-x:auto;margin:0 0 10px}
+.help-tbl{border-collapse:collapse;font-size:13.5px;margin:0 0 10px;width:100%;max-width:640px}
+.help-tbl td,.help-tbl th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.help-tbl th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.help-tip{border-left:3px solid var(--teal);background:color-mix(in oklab, var(--teal) 10%, transparent);padding:8px 12px;border-radius:0 8px 8px 0;font-size:13.5px;margin:0 0 10px;max-width:72ch}
+.help-empty{color:var(--muted);font-size:14px}
+mark{background:color-mix(in oklab, var(--brass) 35%, transparent);color:inherit;border-radius:2px}
 
 /* modal + toast */
 .modal{position:fixed;inset:0;z-index:70;background:color-mix(in oklab, var(--bg) 70%, transparent);display:grid;place-items:center;padding:max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px))}

@@ -277,7 +277,7 @@ function bind() {
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && !$('#modal').hidden) { closeModal(); return; }
     const tag = (e.target.tagName || '').toLowerCase();
-    const popupOpen = !$('#modal').hidden || !$('#pdfModal').hidden;
+    const popupOpen = !$('#modal').hidden || !$('#pdfModal').hidden || !$('#helpModal').hidden;
     if (e.key === ' ' && !popupOpen && !['input','textarea','select','button'].includes(tag) && e.target.id !== 'tabGrid' && !e.target.closest('.cf-g')) { e.preventDefault(); if (Player.playing) Player.stop(); else playSong(); }
   });
 }

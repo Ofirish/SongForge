@@ -20,7 +20,7 @@ function sectionHTML(sec, si) {
     <header class="sec-h">
       <span class="sec-tag">${TYPE_LABEL[sec.type]}</span>
       <h3>${esc(name)}</h3>
-      <span class="sec-meta">${sec.lines.length} lines · ${Math.round(bars)} bars</span>
+      <span class="sec-meta">${sec.lines.length} line${sec.lines.length === 1 ? "" : "s"} · ${Math.round(bars)} bars</span>
       <div class="sec-tools">
         <button class="ibtn" data-act="play" title="Play this part" aria-label="Play ${esc(name)}">${ui.playing === 'sec:' + si ? ICON.stop : ICON.play}</button>
         <label class="rep" title="Times this part repeats">×<input type="number" min="1" max="8" value="${sec.repeat}" data-act="repeat" id="rep-${si}" aria-label="Repeats"></label>

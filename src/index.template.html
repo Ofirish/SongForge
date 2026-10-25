@@ -1,5 +1,13 @@
 <title>Song Forge</title>
 <meta name="claude:viewport-fit-sides" content="cover">
+<script>
+/* Apply the saved theme before anything paints. Dark is the default. */
+(function () {
+  var t = 'dark';
+  try { t = localStorage.getItem('songforge.theme') === 'light' ? 'light' : 'dark'; } catch (e) {}
+  document.documentElement.setAttribute('data-sf-theme', t);
+})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap">
@@ -11,7 +19,7 @@
   <header class="top">
     <div class="bar">
       <div class="brand"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="pick" d="M12 22c-1.6 0-7.5-8.3-8.4-12.6C2.9 5.9 6.6 2 12 2s9.1 3.9 8.4 7.4C19.5 13.7 13.6 22 12 22z"/></svg>Song Forge</div>
-      <div class="bar-r"><span class="save" id="saveState">Saved in this browser</span><button class="btn" id="pdfBtn">Save as PDF</button><button class="btn" id="filesBtn">Import / Export</button></div>
+      <div class="bar-r"><span class="save" id="saveState">Saved in this browser</span><button class="btn theme-btn" id="themeBtn"></button><button class="btn" id="helpBtn">Help</button><button class="btn" id="pdfBtn">Save as PDF</button><button class="btn" id="filesBtn">Import / Export</button></div>
     </div>
     <div class="songhead">
       <textarea id="songTitle" class="title-in" rows="1" aria-label="Song title" spellcheck="false"></textarea>
@@ -163,6 +171,18 @@
         </div>
       </div>
       <div class="pdf-foot"><p class="hint">The preview is exactly what the file will look like.</p><button class="btn primary" id="pdfSave">Save PDF</button></div>
+    </div>
+  </div>
+  <div class="modal" id="helpModal" hidden>
+    <div class="modal-card help-card" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+      <div class="modal-h"><h2 id="helpTitle">Song Forge help</h2><button class="btn" id="helpClose">Close</button></div>
+      <div class="help-body">
+        <div class="help-side">
+          <input class="help-search" id="helpSearch" type="search" placeholder="Search help" aria-label="Search help">
+          <nav class="help-toc" id="helpToc" aria-label="Help topics"></nav>
+        </div>
+        <div class="help-main" id="helpMain" tabindex="-1"></div>
+      </div>
     </div>
   </div>
   <div class="toast" id="toast" role="status" hidden></div>

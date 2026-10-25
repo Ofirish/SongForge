@@ -23,7 +23,8 @@
     "src/js/app/13-nowNext.js",
     "src/js/app/14-floatingWindows.js",
     "src/js/app/15-guitarMenu.js",
-    "src/js/app/16-midiExport.js"
+    "src/js/app/16-midiExport.js",
+    "src/js/app/17-helpAndTheme.js"
   ],
   "pdf": [
     "src/js/pdf/01-pdfExport.js"
