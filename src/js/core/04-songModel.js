@@ -182,6 +182,8 @@ function tabToAscii(tab, tuning) { return tabAsciiLayout(tab, tuning).text; }
 const PLACE_LABEL = { over:'Over the part', lead:'Lead-in', fill:'Fill' };
 const KIND_LABEL = { riff:'Riff', lick:'Lick', solo:'Solo', custom:'Tab' };
 function riffBars(r) { return r.steps / 8; }
+/** "1 bar", "4 bars" */
+function barsLabel(r) { const n = riffBars(r); return n + (n === 1 ? ' bar' : ' bars'); }
 function songToText(song) {
   const tun = TUNINGS[song.tuning] || TUNINGS.standard;
   const byId = new Map(song.riffs.map(r => [r.id, r]));
@@ -193,7 +195,7 @@ function songToText(song) {
   }).join('\n\n');
   let txt = head.join('\n') + '\n' + body + '\n';
   song.riffs.filter(r => Object.keys(r.notes).length).forEach(r => {
-    txt += `\nTAB — ${r.name} (${KIND_LABEL[r.kind] || 'Tab'}, ${riffBars(r)} bars)\n` + tabToAscii(r, tun.midi) + '\n';
+    txt += `\nTAB — ${r.name} (${KIND_LABEL[r.kind] || 'Tab'}, ${barsLabel(r)})\n` + tabToAscii(r, tun.midi) + '\n';
   });
   return txt;
 }

@@ -1,148 +1,265 @@
 {
-  "id": "home",
-  "title": "The Only Song That Brings Me Home",
-  "artist": "Dedicated to Toy",
+  "id": "under-construction",
+  "title": "This Song Is Under Construction",
+  "artist": "Song Forge example song",
   "key": "G",
   "capo": 0,
-  "tempo": 72,
+  "tempo": 104,
   "tuning": "standard",
   "strum": "ballad",
   "sections": [
     {
-      "type": "verse",
-      "title": "[Verse 1]",
-      "riffs": [
-        {
-          "id": "walkup",
-          "place": "lead",
-          "every": true
-        }
-      ],
+      "type": "intro",
+      "title": "[Intro]",
+      "repeat": 2,
       "lines": [
         {
-          "chords": "G                   C               G",
-          "lyrics": "The highway dust is settling on the porch"
+          "chords": "G       C",
+          "lyrics": ""
+        }
+      ],
+      "riffs": [
+        {
+          "id": "intro",
+          "place": "over",
+          "every": true
+        }
+      ]
+    },
+    {
+      "type": "verse",
+      "title": "[Verse 1]",
+      "repeat": 1,
+      "lines": [
+        {
+          "chords": "G                       D",
+          "lyrics": "Woke up at three with a melody in my head"
         },
         {
-          "chords": "G             C                 D",
-          "lyrics": "Staring at a flame from a dying torch"
+          "chords": "Em                             C",
+          "lyrics": "Hummed it to my phone and went back to bed"
         },
         {
-          "chords": "G              C                       G",
-          "lyrics": "Ain't a lot of gold in these calloused hands"
+          "chords": "G                                   D",
+          "lyrics": "Played it back at breakfast, it was not a tune"
         },
         {
-          "chords": "D             C                     G",
-          "lyrics": "Just a simple boy from the southern lands"
+          "chords": "Em              C         D",
+          "lyrics": "Just a snore, a cat and a squeaky spoon"
+        }
+      ]
+    },
+    {
+      "type": "prechorus",
+      "title": "[Pre-chorus 1]",
+      "repeat": 1,
+      "lines": [
+        {
+          "chords": "Am7                    C",
+          "lyrics": "So I grabbed my old guitar"
+        },
+        {
+          "chords": "D/F#                              D",
+          "lyrics": "Tuned it twice, it still sounds bizarre"
+        }
+      ]
+    },
+    {
+      "type": "chorus",
+      "title": "[Chorus]",
+      "repeat": 1,
+      "lines": [
+        {
+          "chords": "G            D/F#     Em",
+          "lyrics": "This song is under construction"
+        },
+        {
+          "chords": "C                      D",
+          "lyrics": "Wear a helmet when you sing along"
+        },
+        {
+          "chords": "G                  D/F#    Em",
+          "lyrics": "Three chords and a vague instruction"
+        },
+        {
+          "chords": "C            D          G",
+          "lyrics": "That's how I wrote this song"
+        }
+      ],
+      "riffs": [
+        {
+          "id": "hardhat",
+          "place": "fill",
+          "every": true
         }
       ]
     },
     {
       "type": "verse",
       "title": "[Verse 2]",
+      "repeat": 1,
       "lines": [
         {
-          "chords": "G                       C               G",
-          "lyrics": "The clock keeps ticking and the shadows grow"
+          "chords": "G                                  D",
+          "lyrics": "Searched all night for a rhyme for \"orange\""
         },
         {
-          "chords": "G               C                     D",
-          "lyrics": "Nowhere else on earth that I'd rather go"
+          "chords": "Em                          C",
+          "lyrics": "Ended up with \"door hinge\", now the verse is strange"
         },
         {
-          "chords": "C               D                         G         C",
-          "lyrics": "Than right here beside you in the evening breeze"
+          "chords": "G                           D",
+          "lyrics": "Every time I find a chord I like a lot"
         },
         {
-          "chords": "D                C                           G",
-          "lyrics": "Listening to the wind through the whispering trees"
+          "chords": "Em                 C               D",
+          "lyrics": "Turns out it's the only chord I've got"
+        }
+      ]
+    },
+    {
+      "type": "prechorus",
+      "title": "[Pre-chorus 2]",
+      "repeat": 1,
+      "lines": [
+        {
+          "chords": "Am7                          C",
+          "lyrics": "Then my neighbour knocked to say"
+        },
+        {
+          "chords": "D/F#                         D",
+          "lyrics": "\"Please, just pick a key and stay\""
         }
       ]
     },
     {
       "type": "chorus",
       "title": "[Chorus]",
+      "repeat": 1,
       "lines": [
         {
-          "chords": "         C    C     Am               G",
-          "lyrics": "And it's you, Toy, you're my guiding light"
+          "chords": "G            D/F#     Em",
+          "lyrics": "This song is under construction"
         },
         {
-          "chords": "         C    C     Am           G",
-          "lyrics": "Through the longest road and the darkest night"
+          "chords": "C                      D",
+          "lyrics": "Wear a helmet when you sing along"
         },
         {
-          "chords": "C                        G",
-          "lyrics": "Every single mile that I'm bound to roam"
+          "chords": "G                  D/F#    Em",
+          "lyrics": "Three chords and a vague instruction"
         },
         {
-          "chords": "C               D                   G",
-          "lyrics": "You're the only song that brings me home"
+          "chords": "C            D          G",
+          "lyrics": "That's how I wrote this song"
+        }
+      ],
+      "riffs": [
+        {
+          "id": "hardhat",
+          "place": "fill",
+          "every": true
         }
       ]
     },
     {
-      "type": "verse",
-      "title": "[Verse 3]",
+      "type": "bridge",
+      "title": "[Bridge]",
+      "repeat": 1,
       "lines": [
         {
-          "chords": "G                      C             G",
-          "lyrics": "We ain't got a fortune piled up in a bank"
+          "chords": "Em                       C",
+          "lyrics": "This is the bridge, it's very steep"
         },
         {
-          "chords": "G                  C                 D",
-          "lyrics": "Just our own front porch and a rusty tank"
+          "chords": "G                 D",
+          "lyrics": "Mind the gap, the chords run deep"
         },
         {
-          "chords": "    C                 D   G                C",
-          "lyrics": "But when you smile at me, all the troubles fade"
+          "chords": "Em                C",
+          "lyrics": "Key change coming any day"
         },
         {
-          "chords": "D                       C                   G",
-          "lyrics": "We've got the best damn love that God ever made"
+          "chords": "E7                         Am7",
+          "lyrics": "Please hold the line, it's on its way"
+        },
+        {
+          "chords": "D",
+          "lyrics": "(It's not.)"
+        }
+      ]
+    },
+    {
+      "type": "solo",
+      "title": "[Air-guitar solo]",
+      "repeat": 2,
+      "lines": [
+        {
+          "chords": "G       D       Em      C",
+          "lyrics": ""
+        }
+      ],
+      "riffs": [
+        {
+          "id": "airsolo",
+          "place": "over",
+          "every": true
         }
       ]
     },
     {
       "type": "chorus",
-      "title": "[Chorus]",
+      "title": "[Last chorus]",
+      "repeat": 2,
       "lines": [
         {
-          "chords": "         C    C     Am               G",
-          "lyrics": "And it's you, Toy, you're my guiding light"
+          "chords": "G            D/F#     Em",
+          "lyrics": "This song is under construction"
         },
         {
-          "chords": "         C    C     Am           G",
-          "lyrics": "Through the longest road and the darkest night"
+          "chords": "C                      D",
+          "lyrics": "Wear a helmet when you sing along"
         },
         {
-          "chords": "C                        G",
-          "lyrics": "Every single mile that I'm bound to roam"
+          "chords": "G                  D/F#    Em",
+          "lyrics": "Three chords and a vague instruction"
         },
         {
-          "chords": "C               D                   G",
-          "lyrics": "You're the only song that brings me home"
+          "chords": "C            D          G",
+          "lyrics": "That's how I wrote this song"
+        }
+      ],
+      "riffs": [
+        {
+          "id": "hardhat",
+          "place": "fill",
+          "every": true
         }
       ]
     },
     {
       "type": "outro",
       "title": "[Outro]",
+      "repeat": 1,
       "lines": [
         {
-          "chords": "C               D                   G",
-          "lyrics": "Yeah, you're the only song that brings me home"
+          "chords": "C              D                 G",
+          "lyrics": "Grand opening: never, but you're welcome to come"
+        },
+        {
+          "chords": "C                     D            G",
+          "lyrics": "This song is under construction... done!"
         }
       ]
     }
   ],
-  "activeRiff": "walkup",
+  "activeRiff": "intro",
   "riffs": [
     {
-      "id": "walkup",
-      "name": "Intro walk-up (example)",
+      "id": "intro",
+      "name": "Hammer-time intro (example)",
       "kind": "riff",
-      "from": "",
+      "from": "Intro",
       "steps": 16,
       "notes": [
         {
@@ -151,62 +268,71 @@
           "f": 3
         },
         {
+          "c": 1,
+          "s": 2,
+          "f": 0
+        },
+        {
           "c": 2,
-          "s": 1,
+          "s": 3,
           "f": 0
         },
         {
           "c": 3,
+          "s": 4,
+          "f": 3
+        },
+        {
+          "c": 4,
+          "s": 3,
+          "f": 0
+        },
+        {
+          "c": 5,
+          "s": 2,
+          "f": 0
+        },
+        {
+          "c": 6,
+          "s": 1,
+          "f": 0
+        },
+        {
+          "c": 7,
           "s": 1,
           "f": 2,
           "t": "h"
         },
         {
-          "c": 4,
+          "c": 8,
           "s": 1,
           "f": 3
         },
         {
-          "c": 6,
+          "c": 9,
           "s": 2,
           "f": 2
-        },
-        {
-          "c": 6,
-          "s": 3,
-          "f": 0
-        },
-        {
-          "c": 6,
-          "s": 4,
-          "f": 1
-        },
-        {
-          "c": 8,
-          "s": 4,
-          "f": 1
-        },
-        {
-          "c": 9,
-          "s": 4,
-          "f": 0,
-          "t": "p"
         },
         {
           "c": 10,
           "s": 3,
-          "f": 2
+          "f": 0
         },
         {
           "c": 11,
-          "s": 3,
+          "s": 4,
+          "f": 1
+        },
+        {
+          "c": 12,
+          "s": 4,
           "f": 0,
           "t": "p"
         },
         {
-          "c": 12,
-          "s": 2,
-          "f": 0
+          "c": 13,
+          "s": 3,
+          "f": 2
         },
         {
           "c": 14,
@@ -219,11 +345,199 @@
           "f": 3,
           "t": "~"
         }
+      ],
+      "backing": [
+        {
+          "sym": "G",
+          "beats": 4
+        },
+        {
+          "sym": "C",
+          "beats": 4
+        }
+      ]
+    },
+    {
+      "id": "hardhat",
+      "name": "Hard-hat fill (example)",
+      "kind": "lick",
+      "from": "Chorus",
+      "steps": 8,
+      "notes": [
+        {
+          "c": 0,
+          "s": 3,
+          "f": 2
+        },
+        {
+          "c": 1,
+          "s": 3,
+          "f": 4,
+          "t": "h"
+        },
+        {
+          "c": 2,
+          "s": 4,
+          "f": 3
+        },
+        {
+          "c": 3,
+          "s": 4,
+          "f": 5,
+          "t": "h"
+        },
+        {
+          "c": 4,
+          "s": 5,
+          "f": 3,
+          "t": "~"
+        }
+      ],
+      "backing": [
+        {
+          "sym": "G",
+          "beats": 4
+        }
+      ]
+    },
+    {
+      "id": "airsolo",
+      "name": "Air-guitar solo (example)",
+      "kind": "solo",
+      "from": "Air-guitar solo",
+      "steps": 32,
+      "notes": [
+        {
+          "c": 0,
+          "s": 5,
+          "f": 3
+        },
+        {
+          "c": 2,
+          "s": 4,
+          "f": 5
+        },
+        {
+          "c": 3,
+          "s": 4,
+          "f": 3,
+          "t": "p"
+        },
+        {
+          "c": 4,
+          "s": 3,
+          "f": 4
+        },
+        {
+          "c": 5,
+          "s": 3,
+          "f": 2,
+          "t": "p"
+        },
+        {
+          "c": 6,
+          "s": 2,
+          "f": 5
+        },
+        {
+          "c": 8,
+          "s": 3,
+          "f": 2
+        },
+        {
+          "c": 9,
+          "s": 3,
+          "f": 4,
+          "t": "h"
+        },
+        {
+          "c": 10,
+          "s": 4,
+          "f": 3
+        },
+        {
+          "c": 12,
+          "s": 4,
+          "f": 3,
+          "t": "b"
+        },
+        {
+          "c": 16,
+          "s": 5,
+          "f": 0
+        },
+        {
+          "c": 17,
+          "s": 5,
+          "f": 3
+        },
+        {
+          "c": 18,
+          "s": 4,
+          "f": 5
+        },
+        {
+          "c": 20,
+          "s": 4,
+          "f": 3
+        },
+        {
+          "c": 21,
+          "s": 3,
+          "f": 4
+        },
+        {
+          "c": 22,
+          "s": 3,
+          "f": 2
+        },
+        {
+          "c": 24,
+          "s": 3,
+          "f": 5
+        },
+        {
+          "c": 25,
+          "s": 3,
+          "f": 4,
+          "t": "p"
+        },
+        {
+          "c": 26,
+          "s": 3,
+          "f": 2,
+          "t": "p"
+        },
+        {
+          "c": 28,
+          "s": 2,
+          "f": 5,
+          "t": "~"
+        }
+      ],
+      "backing": [
+        {
+          "sym": "G",
+          "beats": 4
+        },
+        {
+          "sym": "D",
+          "beats": 4
+        },
+        {
+          "sym": "Em",
+          "beats": 4
+        },
+        {
+          "sym": "C",
+          "beats": 4
+        }
       ]
     }
   ],
   "progression": [
     "G",
-    "C"
+    "D/F#",
+    "Em"
   ]
 }

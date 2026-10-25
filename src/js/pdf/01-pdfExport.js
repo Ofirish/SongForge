@@ -225,7 +225,7 @@ function buildPdfBlocks(o, M) {
         p.rect(x, y + 0.4, 1, M.small * MM_PER_PT * 1.25, { fill:tc });
         p.font('bodyBold', M.small); p.color(tc); const t = PLACE_LABEL[a.place].toUpperCase(); p.text(t, x + 2.5, y + M.small * MM_PER_PT * 1.2);
         const tw = p.width(t); p.font('bodyBold', M.small + 0.5); p.color(C.ink); p.text(`${r.name}`, x + 5 + tw, y + M.small * MM_PER_PT * 1.2);
-        const nw = p.width(r.name); p.font('body', M.small); p.color(C.muted); p.text(`${riffBars(r)} bars${a.every || sec.repeat < 2 ? '' : ', first time only'}`, x + 7.5 + tw + nw, y + M.small * MM_PER_PT * 1.2);
+        const nw = p.width(r.name); p.font('body', M.small); p.color(C.muted); p.text(`${barsLabel(r)}${a.every || sec.repeat < 2 ? '' : ', first time only'}`, x + 7.5 + tw + nw, y + M.small * MM_PER_PT * 1.2);
       } };
       items.push(lab);
       const tb = tabBars(r, tun);

@@ -29,7 +29,7 @@ function renderRiffLib() {
     return `<div class="rcard${r === song.tab ? ' on' : ''}" data-kind="${r.kind}">
       <button class="rc-main" data-ropen="${r.id}" aria-pressed="${r === song.tab}">
         <span class="rc-name">${esc(r.name)}</span>
-        <span class="rc-meta"><span class="rc-kind">${KIND_LABEL[r.kind]}</span>${riffBars(r)} bars${r.from ? ' · over ' + esc(r.from) : ''}${notes ? '' : ' · empty'}</span>
+        <span class="rc-meta"><span class="rc-kind">${KIND_LABEL[r.kind]}</span>${barsLabel(r)}${r.from ? ' · over ' + esc(r.from) : ''}${notes ? '' : ' · empty'}</span>
         <span class="rc-used">${uses.length ? 'In ' + uses.map(u => esc(secName(song.sections[u.si]))).join(', ') : 'Not in the song yet'}</span>
       </button>
       <button class="ibtn" data-rplay="${r.id}" aria-label="Play ${esc(r.name)}">${ui.playing === 'riff:' + r.id ? ICON.stop : ICON.play}</button>
@@ -59,7 +59,7 @@ function riffTagHTML(sec, si, a, idx) {
   if (!r) return '';
   const key = si + ':' + idx, open = ui.expandAll ? !ui.texp.has(key) : ui.texp.has(key);   // texp holds exceptions to the global setting
   return `<div class="rtag" data-tag="${key}" data-place="${a.place}">
-      <button class="rt-main" data-texp="${key}" aria-expanded="${open}"><span class="rt-place">${PLACE_LABEL[a.place]}</span><span class="rt-name">${esc(r.name)}</span><span class="rt-len">${riffBars(r)} bars${a.every || sec.repeat < 2 ? '' : ' · first time only'}</span></button>
+      <button class="rt-main" data-texp="${key}" aria-expanded="${open}"><span class="rt-place">${PLACE_LABEL[a.place]}</span><span class="rt-name">${esc(r.name)}</span><span class="rt-len">${barsLabel(r)}${a.every || sec.repeat < 2 ? '' : ' · first time only'}</span></button>
       <button class="ibtn" data-rplay="${r.id}" aria-label="Play ${esc(r.name)}">${ICON.play}</button>
     </div>${open ? `<div class="rt-tabwrap">${(() => { const L = tabAsciiLayout(r, tuning()); return `<pre class="rt-tab" data-rid="${r.id}" data-tag="${key}" data-cols="${JSON.stringify(L.cols)}">${esc(L.text)}<span class="play-dot" hidden aria-hidden="true"></span></pre>`; })()}<button class="tbtn" data-redit="${r.id}">Edit in Tab</button></div>` : ''}`;
 }
@@ -77,7 +77,7 @@ function attachPanelHTML(sec, si) {
     <div class="at-h"><span class="sub">Riffs in this part</span><button class="tbtn" data-act="riffs">Done</button></div>
     ${rows || '<p class="empty">No riffs here yet.</p>'}
     <div class="at-row add">
-      <select id="aid-${si}" aria-label="Riff">${song.riffs.map(r => `<option value="${r.id}">${esc(r.name)} (${riffBars(r)} bars)</option>`).join('')}</select>
+      <select id="aid-${si}" aria-label="Riff">${song.riffs.map(r => `<option value="${r.id}">${esc(r.name)} (${barsLabel(r)})</option>`).join('')}</select>
       <select id="apl-${si}" aria-label="Where it plays">${Object.entries(PLACE_LABEL).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select>
       <button class="btn sm" data-act="aadd">Add riff</button>
     </div>

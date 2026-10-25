@@ -1,7 +1,8 @@
 # Song Forge — notes for Claude
 
 Browser guitar songwriting app (chords over lyrics, playback, chord tools, neck, tab, riffs, PDF export).
-Owner: Ofir. The example song is "The Only Song That Brings Me Home", dedicated to Toy.
+Owner: Ofir. The default example song (`src/data/sample-song.json`) is "This Song Is Under Construction",
+a funny song about writing songs, with three example riffs (intro over the Intro, a fill on each chorus, a solo).
 
 ## How Ofir likes changes made
 - For new features: check, plan and explain the plan first; build only after he approves.
