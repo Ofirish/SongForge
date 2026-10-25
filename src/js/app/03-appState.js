@@ -1,7 +1,7 @@
 /* ================================================================
    app state + persistence
    ================================================================ */
-const STORE_KEY = 'songforge.song.v1';
+const STORE_KEY = 'tabwright.song.v1';
 const STRUMS = {
   ballad:   { name:'Ballad (D · D U · U D U)', p:'D-DU-UDU' },
   quarters: { name:'Quarter-note downs',       p:'D-D-D-D-' },
@@ -19,7 +19,7 @@ if (!STRUMS[song.strum]) song.strum = 'ballad';
 const ui = { sel:null, tool:'chord', neckMode:'chord', neckLabel:'note', neckToTab:true, editing:new Set(),
   loop:false, metro:false, circleSel:null, selK:null, floatStrip:false, cur:{ c:0, s:5 }, pending:null, playing:null, active:null, delArm:null };
 ui.sel = uniqueChords()[0] || 'C';
-const PREFS_KEY = 'songforge.prefs.v1';
+const PREFS_KEY = 'tabwright.prefs.v1';
 let prefs = { muted:false, floatStrip:false, windows:{}, open:[] };
 try { prefs = { ...prefs, ...JSON.parse(localStorage.getItem(PREFS_KEY) || '{}') }; } catch (e) {}
 function savePrefs() { try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); } catch (e) {} }
@@ -36,7 +36,7 @@ AudioEngine.setMuted(prefs.muted);
    - every change is written ~0.35 s later
    - a safety write runs every minute, and when the tab is hidden or closed
    - each minute with changes also keeps a copy in a rolling list of recent autosaves */
-const BACKUP_KEY = 'songforge.backups.v1';
+const BACKUP_KEY = 'tabwright.backups.v1';
 const MAX_BACKUPS = 12;
 let saveTimer = 0, dirty = false, backupDirty = false, lastSaved = 0;
 function save() {

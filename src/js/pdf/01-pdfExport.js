@@ -22,7 +22,7 @@ const INK = {
   saver: { ink:'#000000', muted:'#555555', rule:'#bbbbbb', accent:'#000000', lead:'#333333', fill:'#333333', over:'#333333',
            verse:'#333333', chorus:'#000000', prechorus:'#333333', bridge:'#333333', solo:'#333333', intro:'#555555', outro:'#555555', root:'#000000' },
 };
-const BG_IMG_KEY = 'songforge.bgimg.v1';
+const BG_IMG_KEY = 'tabwright.bgimg.v1';
 
 let pdfOpts = Object.assign({ chords:true, lyrics:true, charts:true, tabs:true, details:true, size:'M', orient:'auto',
   paper:'a4', ink:'color', bg:'blank', imgMode:'faded', border:'none', colLines:true }, prefs.pdf || {});
@@ -538,7 +538,7 @@ async function buildPdfFile() {
   const doc = new jsPDF({ unit:'mm', format: o.paper === 'letter' ? 'letter' : 'a4', orientation: plan.W > plan.H ? 'landscape' : 'portrait', compress:true });
   [['YoungSerif.ttf', 'YoungSerif', 'normal', 'YoungSerif'], ['Figtree.ttf', 'Figtree', 'normal', 'Figtree'], ['FigtreeBold.ttf', 'Figtree', 'bold', 'FigtreeBold'],
    ['JBMono.ttf', 'JBMono', 'normal', 'JBMono'], ['JBMonoBold.ttf', 'JBMono', 'bold', 'JBMonoBold']].forEach(([file, fam, st, k]) => { doc.addFileToVFS(file, PDF_FONTS[k]); doc.addFont(file, fam, st); });
-  doc.setProperties({ title: pdfText(song.title), subject: 'Song sheet', creator: 'Song Forge' });
+  doc.setProperties({ title: pdfText(song.title), subject: 'Song sheet', creator: 'Tabwright' });
   if (o.bg === 'image' && bgImage && !bgImage.el) await loadBgEl();
   const p = pdfPainter(doc);
   plan.pages.forEach((pg, i) => { if (i) doc.addPage(); drawPdfPage(p, plan, pg, i, o); });

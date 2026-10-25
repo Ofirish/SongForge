@@ -4,13 +4,21 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
-<title>Song Forge</title>
+<title>Tabwright</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <script>
-/* Apply the saved theme before anything paints. Dark is the default. */
+/* Runs before anything paints.
+   1. One-time move of data saved under the app's old name (Song Forge) to the new keys, so nothing is lost.
+   2. Apply the saved theme. Dark is the default. */
 (function () {
+  try {
+    ['song.v1', 'backups.v1', 'prefs.v1', 'bgimg.v1', 'theme'].forEach(function (k) {
+      var old = localStorage.getItem('songforge.' + k);
+      if (old !== null && localStorage.getItem('tabwright.' + k) === null) localStorage.setItem('tabwright.' + k, old);
+    });
+  } catch (e) {}
   var t = 'dark';
-  try { t = localStorage.getItem('songforge.theme') === 'light' ? 'light' : 'dark'; } catch (e) {}
+  try { t = localStorage.getItem('tabwright.theme') === 'light' ? 'light' : 'dark'; } catch (e) {}
   document.documentElement.setAttribute('data-sf-theme', t);
 })();
 </script>
@@ -540,7 +548,7 @@ mark{background:color-mix(in oklab, var(--brass) 35%, transparent);color:inherit
 <div class="app">
   <header class="top">
     <div class="bar">
-      <div class="brand"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="pick" d="M12 22c-1.6 0-7.5-8.3-8.4-12.6C2.9 5.9 6.6 2 12 2s9.1 3.9 8.4 7.4C19.5 13.7 13.6 22 12 22z"/></svg>Song Forge</div>
+      <div class="brand"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="pick" d="M12 22c-1.6 0-7.5-8.3-8.4-12.6C2.9 5.9 6.6 2 12 2s9.1 3.9 8.4 7.4C19.5 13.7 13.6 22 12 22z"/></svg>Tabwright</div>
       <div class="bar-r"><span class="save" id="saveState">Saved in this browser</span><button class="btn theme-btn" id="themeBtn"></button><button class="btn" id="helpBtn">Help</button><button class="btn" id="pdfBtn">Save as PDF</button><button class="btn" id="filesBtn">Import / Export</button></div>
     </div>
     <div class="songhead">
@@ -697,7 +705,7 @@ mark{background:color-mix(in oklab, var(--brass) 35%, transparent);color:inherit
   </div>
   <div class="modal" id="helpModal" hidden>
     <div class="modal-card help-card" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
-      <div class="modal-h"><h2 id="helpTitle">Song Forge help</h2><button class="btn" id="helpClose">Close</button></div>
+      <div class="modal-h"><h2 id="helpTitle">Tabwright help</h2><button class="btn" id="helpClose">Close</button></div>
       <div class="help-body">
         <div class="help-side">
           <input class="help-search" id="helpSearch" type="search" placeholder="Search help" aria-label="Search help">
@@ -712,7 +720,7 @@ mark{background:color-mix(in oklab, var(--brass) 35%, transparent);color:inherit
 
 <script>
 /* Default example song (src/data/sample-song.json): "This Song Is Under Construction" with example riffs */
-const SAMPLE_SONG = {"id": "under-construction", "title": "This Song Is Under Construction", "artist": "Song Forge example song", "key": "G", "capo": 0, "tempo": 104, "tuning": "standard", "strum": "ballad", "sections": [{"type": "intro", "title": "[Intro]", "repeat": 2, "lines": [{"chords": "G       C", "lyrics": ""}], "riffs": [{"id": "intro", "place": "over", "every": true}]}, {"type": "verse", "title": "[Verse 1]", "repeat": 1, "lines": [{"chords": "G                       D", "lyrics": "Woke up at three with a melody in my head"}, {"chords": "Em                             C", "lyrics": "Hummed it to my phone and went back to bed"}, {"chords": "G                                   D", "lyrics": "Played it back at breakfast, it was not a tune"}, {"chords": "Em              C         D", "lyrics": "Just a snore, a cat and a squeaky spoon"}]}, {"type": "prechorus", "title": "[Pre-chorus 1]", "repeat": 1, "lines": [{"chords": "Am7                    C", "lyrics": "So I grabbed my old guitar"}, {"chords": "D/F#                              D", "lyrics": "Tuned it twice, it still sounds bizarre"}]}, {"type": "chorus", "title": "[Chorus]", "repeat": 1, "lines": [{"chords": "G            D/F#     Em", "lyrics": "This song is under construction"}, {"chords": "C                      D", "lyrics": "Wear a helmet when you sing along"}, {"chords": "G                  D/F#    Em", "lyrics": "Three chords and a vague instruction"}, {"chords": "C            D          G", "lyrics": "That's how I wrote this song"}], "riffs": [{"id": "hardhat", "place": "fill", "every": true}]}, {"type": "verse", "title": "[Verse 2]", "repeat": 1, "lines": [{"chords": "G                                  D", "lyrics": "Searched all night for a rhyme for \"orange\""}, {"chords": "Em                          C", "lyrics": "Ended up with \"door hinge\", now the verse is strange"}, {"chords": "G                           D", "lyrics": "Every time I find a chord I like a lot"}, {"chords": "Em                 C               D", "lyrics": "Turns out it's the only chord I've got"}]}, {"type": "prechorus", "title": "[Pre-chorus 2]", "repeat": 1, "lines": [{"chords": "Am7                          C", "lyrics": "Then my neighbour knocked to say"}, {"chords": "D/F#                         D", "lyrics": "\"Please, just pick a key and stay\""}]}, {"type": "chorus", "title": "[Chorus]", "repeat": 1, "lines": [{"chords": "G            D/F#     Em", "lyrics": "This song is under construction"}, {"chords": "C                      D", "lyrics": "Wear a helmet when you sing along"}, {"chords": "G                  D/F#    Em", "lyrics": "Three chords and a vague instruction"}, {"chords": "C            D          G", "lyrics": "That's how I wrote this song"}], "riffs": [{"id": "hardhat", "place": "fill", "every": true}]}, {"type": "bridge", "title": "[Bridge]", "repeat": 1, "lines": [{"chords": "Em                       C", "lyrics": "This is the bridge, it's very steep"}, {"chords": "G                 D", "lyrics": "Mind the gap, the chords run deep"}, {"chords": "Em                C", "lyrics": "Key change coming any day"}, {"chords": "E7                         Am7", "lyrics": "Please hold the line, it's on its way"}, {"chords": "D", "lyrics": "(It's not.)"}]}, {"type": "solo", "title": "[Air-guitar solo]", "repeat": 2, "lines": [{"chords": "G       D       Em      C", "lyrics": ""}], "riffs": [{"id": "airsolo", "place": "over", "every": true}]}, {"type": "chorus", "title": "[Last chorus]", "repeat": 2, "lines": [{"chords": "G            D/F#     Em", "lyrics": "This song is under construction"}, {"chords": "C                      D", "lyrics": "Wear a helmet when you sing along"}, {"chords": "G                  D/F#    Em", "lyrics": "Three chords and a vague instruction"}, {"chords": "C            D          G", "lyrics": "That's how I wrote this song"}], "riffs": [{"id": "hardhat", "place": "fill", "every": true}]}, {"type": "outro", "title": "[Outro]", "repeat": 1, "lines": [{"chords": "C              D                 G", "lyrics": "Grand opening: never, but you're welcome to come"}, {"chords": "C                     D            G", "lyrics": "This song is under construction... done!"}]}], "activeRiff": "intro", "riffs": [{"id": "intro", "name": "Hammer-time intro (example)", "kind": "riff", "from": "Intro", "steps": 16, "notes": [{"c": 0, "s": 0, "f": 3}, {"c": 1, "s": 2, "f": 0}, {"c": 2, "s": 3, "f": 0}, {"c": 3, "s": 4, "f": 3}, {"c": 4, "s": 3, "f": 0}, {"c": 5, "s": 2, "f": 0}, {"c": 6, "s": 1, "f": 0}, {"c": 7, "s": 1, "f": 2, "t": "h"}, {"c": 8, "s": 1, "f": 3}, {"c": 9, "s": 2, "f": 2}, {"c": 10, "s": 3, "f": 0}, {"c": 11, "s": 4, "f": 1}, {"c": 12, "s": 4, "f": 0, "t": "p"}, {"c": 13, "s": 3, "f": 2}, {"c": 14, "s": 0, "f": 3}, {"c": 14, "s": 5, "f": 3, "t": "~"}], "backing": [{"sym": "G", "beats": 4}, {"sym": "C", "beats": 4}]}, {"id": "hardhat", "name": "Hard-hat fill (example)", "kind": "lick", "from": "Chorus", "steps": 8, "notes": [{"c": 0, "s": 3, "f": 2}, {"c": 1, "s": 3, "f": 4, "t": "h"}, {"c": 2, "s": 4, "f": 3}, {"c": 3, "s": 4, "f": 5, "t": "h"}, {"c": 4, "s": 5, "f": 3, "t": "~"}], "backing": [{"sym": "G", "beats": 4}]}, {"id": "airsolo", "name": "Air-guitar solo (example)", "kind": "solo", "from": "Air-guitar solo", "steps": 32, "notes": [{"c": 0, "s": 5, "f": 3}, {"c": 2, "s": 4, "f": 5}, {"c": 3, "s": 4, "f": 3, "t": "p"}, {"c": 4, "s": 3, "f": 4}, {"c": 5, "s": 3, "f": 2, "t": "p"}, {"c": 6, "s": 2, "f": 5}, {"c": 8, "s": 3, "f": 2}, {"c": 9, "s": 3, "f": 4, "t": "h"}, {"c": 10, "s": 4, "f": 3}, {"c": 12, "s": 4, "f": 3, "t": "b"}, {"c": 16, "s": 5, "f": 0}, {"c": 17, "s": 5, "f": 3}, {"c": 18, "s": 4, "f": 5}, {"c": 20, "s": 4, "f": 3}, {"c": 21, "s": 3, "f": 4}, {"c": 22, "s": 3, "f": 2}, {"c": 24, "s": 3, "f": 5}, {"c": 25, "s": 3, "f": 4, "t": "p"}, {"c": 26, "s": 3, "f": 2, "t": "p"}, {"c": 28, "s": 2, "f": 5, "t": "~"}], "backing": [{"sym": "G", "beats": 4}, {"sym": "D", "beats": 4}, {"sym": "Em", "beats": 4}, {"sym": "C", "beats": 4}]}], "progression": ["G", "D/F#", "Em"]};
+const SAMPLE_SONG = {"id": "under-construction", "title": "This Song Is Under Construction", "artist": "Tabwright example song", "key": "G", "capo": 0, "tempo": 104, "tuning": "standard", "strum": "ballad", "sections": [{"type": "intro", "title": "[Intro]", "repeat": 2, "lines": [{"chords": "G       C", "lyrics": ""}], "riffs": [{"id": "intro", "place": "over", "every": true}]}, {"type": "verse", "title": "[Verse 1]", "repeat": 1, "lines": [{"chords": "G                       D", "lyrics": "Woke up at three with a melody in my head"}, {"chords": "Em                             C", "lyrics": "Hummed it to my phone and went back to bed"}, {"chords": "G                                   D", "lyrics": "Played it back at breakfast, it was not a tune"}, {"chords": "Em              C         D", "lyrics": "Just a snore, a cat and a squeaky spoon"}]}, {"type": "prechorus", "title": "[Pre-chorus 1]", "repeat": 1, "lines": [{"chords": "Am7                    C", "lyrics": "So I grabbed my old guitar"}, {"chords": "D/F#                              D", "lyrics": "Tuned it twice, it still sounds bizarre"}]}, {"type": "chorus", "title": "[Chorus]", "repeat": 1, "lines": [{"chords": "G            D/F#     Em", "lyrics": "This song is under construction"}, {"chords": "C                      D", "lyrics": "Wear a helmet when you sing along"}, {"chords": "G                  D/F#    Em", "lyrics": "Three chords and a vague instruction"}, {"chords": "C            D          G", "lyrics": "That's how I wrote this song"}], "riffs": [{"id": "hardhat", "place": "fill", "every": true}]}, {"type": "verse", "title": "[Verse 2]", "repeat": 1, "lines": [{"chords": "G                                  D", "lyrics": "Searched all night for a rhyme for \"orange\""}, {"chords": "Em                          C", "lyrics": "Ended up with \"door hinge\", now the verse is strange"}, {"chords": "G                           D", "lyrics": "Every time I find a chord I like a lot"}, {"chords": "Em                 C               D", "lyrics": "Turns out it's the only chord I've got"}]}, {"type": "prechorus", "title": "[Pre-chorus 2]", "repeat": 1, "lines": [{"chords": "Am7                          C", "lyrics": "Then my neighbour knocked to say"}, {"chords": "D/F#                         D", "lyrics": "\"Please, just pick a key and stay\""}]}, {"type": "chorus", "title": "[Chorus]", "repeat": 1, "lines": [{"chords": "G            D/F#     Em", "lyrics": "This song is under construction"}, {"chords": "C                      D", "lyrics": "Wear a helmet when you sing along"}, {"chords": "G                  D/F#    Em", "lyrics": "Three chords and a vague instruction"}, {"chords": "C            D          G", "lyrics": "That's how I wrote this song"}], "riffs": [{"id": "hardhat", "place": "fill", "every": true}]}, {"type": "bridge", "title": "[Bridge]", "repeat": 1, "lines": [{"chords": "Em                       C", "lyrics": "This is the bridge, it's very steep"}, {"chords": "G                 D", "lyrics": "Mind the gap, the chords run deep"}, {"chords": "Em                C", "lyrics": "Key change coming any day"}, {"chords": "E7                         Am7", "lyrics": "Please hold the line, it's on its way"}, {"chords": "D", "lyrics": "(It's not.)"}]}, {"type": "solo", "title": "[Air-guitar solo]", "repeat": 2, "lines": [{"chords": "G       D       Em      C", "lyrics": ""}], "riffs": [{"id": "airsolo", "place": "over", "every": true}]}, {"type": "chorus", "title": "[Last chorus]", "repeat": 2, "lines": [{"chords": "G            D/F#     Em", "lyrics": "This song is under construction"}, {"chords": "C                      D", "lyrics": "Wear a helmet when you sing along"}, {"chords": "G                  D/F#    Em", "lyrics": "Three chords and a vague instruction"}, {"chords": "C            D          G", "lyrics": "That's how I wrote this song"}], "riffs": [{"id": "hardhat", "place": "fill", "every": true}]}, {"type": "outro", "title": "[Outro]", "repeat": 1, "lines": [{"chords": "C              D                 G", "lyrics": "Grand opening: never, but you're welcome to come"}, {"chords": "C                     D            G", "lyrics": "This song is under construction... done!"}]}], "activeRiff": "intro", "riffs": [{"id": "intro", "name": "Hammer-time intro (example)", "kind": "riff", "from": "Intro", "steps": 16, "notes": [{"c": 0, "s": 0, "f": 3}, {"c": 1, "s": 2, "f": 0}, {"c": 2, "s": 3, "f": 0}, {"c": 3, "s": 4, "f": 3}, {"c": 4, "s": 3, "f": 0}, {"c": 5, "s": 2, "f": 0}, {"c": 6, "s": 1, "f": 0}, {"c": 7, "s": 1, "f": 2, "t": "h"}, {"c": 8, "s": 1, "f": 3}, {"c": 9, "s": 2, "f": 2}, {"c": 10, "s": 3, "f": 0}, {"c": 11, "s": 4, "f": 1}, {"c": 12, "s": 4, "f": 0, "t": "p"}, {"c": 13, "s": 3, "f": 2}, {"c": 14, "s": 0, "f": 3}, {"c": 14, "s": 5, "f": 3, "t": "~"}], "backing": [{"sym": "G", "beats": 4}, {"sym": "C", "beats": 4}]}, {"id": "hardhat", "name": "Hard-hat fill (example)", "kind": "lick", "from": "Chorus", "steps": 8, "notes": [{"c": 0, "s": 3, "f": 2}, {"c": 1, "s": 3, "f": 4, "t": "h"}, {"c": 2, "s": 4, "f": 3}, {"c": 3, "s": 4, "f": 5, "t": "h"}, {"c": 4, "s": 5, "f": 3, "t": "~"}], "backing": [{"sym": "G", "beats": 4}]}, {"id": "airsolo", "name": "Air-guitar solo (example)", "kind": "solo", "from": "Air-guitar solo", "steps": 32, "notes": [{"c": 0, "s": 5, "f": 3}, {"c": 2, "s": 4, "f": 5}, {"c": 3, "s": 4, "f": 3, "t": "p"}, {"c": 4, "s": 3, "f": 4}, {"c": 5, "s": 3, "f": 2, "t": "p"}, {"c": 6, "s": 2, "f": 5}, {"c": 8, "s": 3, "f": 2}, {"c": 9, "s": 3, "f": 4, "t": "h"}, {"c": 10, "s": 4, "f": 3}, {"c": 12, "s": 4, "f": 3, "t": "b"}, {"c": 16, "s": 5, "f": 0}, {"c": 17, "s": 5, "f": 3}, {"c": 18, "s": 4, "f": 5}, {"c": 20, "s": 4, "f": 3}, {"c": 21, "s": 3, "f": 4}, {"c": 22, "s": 3, "f": 2}, {"c": 24, "s": 3, "f": 5}, {"c": 25, "s": 3, "f": 4, "t": "p"}, {"c": 26, "s": 3, "f": 2, "t": "p"}, {"c": 28, "s": 2, "f": 5, "t": "~"}], "backing": [{"sym": "G", "beats": 4}, {"sym": "D", "beats": 4}, {"sym": "Em", "beats": 4}, {"sym": "C", "beats": 4}]}], "progression": ["G", "D/F#", "Em"]};
 </script>
 <script>
 /* ---- src/js/core/01-musicTheory.js ---- */
@@ -1828,7 +1836,7 @@ function boxSVG(v, c, size) {
 /* ================================================================
    app state + persistence
    ================================================================ */
-const STORE_KEY = 'songforge.song.v1';
+const STORE_KEY = 'tabwright.song.v1';
 const STRUMS = {
   ballad:   { name:'Ballad (D · D U · U D U)', p:'D-DU-UDU' },
   quarters: { name:'Quarter-note downs',       p:'D-D-D-D-' },
@@ -1846,7 +1854,7 @@ if (!STRUMS[song.strum]) song.strum = 'ballad';
 const ui = { sel:null, tool:'chord', neckMode:'chord', neckLabel:'note', neckToTab:true, editing:new Set(),
   loop:false, metro:false, circleSel:null, selK:null, floatStrip:false, cur:{ c:0, s:5 }, pending:null, playing:null, active:null, delArm:null };
 ui.sel = uniqueChords()[0] || 'C';
-const PREFS_KEY = 'songforge.prefs.v1';
+const PREFS_KEY = 'tabwright.prefs.v1';
 let prefs = { muted:false, floatStrip:false, windows:{}, open:[] };
 try { prefs = { ...prefs, ...JSON.parse(localStorage.getItem(PREFS_KEY) || '{}') }; } catch (e) {}
 function savePrefs() { try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); } catch (e) {} }
@@ -1863,7 +1871,7 @@ AudioEngine.setMuted(prefs.muted);
    - every change is written ~0.35 s later
    - a safety write runs every minute, and when the tab is hidden or closed
    - each minute with changes also keeps a copy in a rolling list of recent autosaves */
-const BACKUP_KEY = 'songforge.backups.v1';
+const BACKUP_KEY = 'tabwright.backups.v1';
 const MAX_BACKUPS = 12;
 let saveTimer = 0, dirty = false, backupDirty = false, lastSaved = 0;
 function save() {
@@ -3589,7 +3597,7 @@ bindMidi();
    ================================================================ */
 
 /* ---------- theme: dark by default, the last choice is remembered ---------- */
-const THEME_KEY = 'songforge.theme';
+const THEME_KEY = 'tabwright.theme';
 const THEME_ICON = {
   // shown icon = the mode you switch TO
   light:'<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3"/><path d="M8 1.5v1.6M8 12.9v1.6M1.5 8h1.6M12.9 8h1.6M3.4 3.4l1.1 1.1M11.5 11.5l1.1 1.1M3.4 12.6l1.1-1.1M11.5 4.5l1.1-1.1"/></svg>',
@@ -3613,7 +3621,7 @@ function renderThemeBtn() {
 const K = s => `<kbd>${s}</kbd>`;
 const HELP = [
  { id:'start', title:'Getting started', html:`
-  <p>Song Forge is a songwriting bench for guitar. You write the song as chords over lyrics, hear it played back, study and pick chords, and write riffs, licks and solos as tab. Everything runs in your browser. Nothing is uploaded.</p>
+  <p>Tabwright is a songwriting bench for guitar. You write the song as chords over lyrics, hear it played back, study and pick chords, and write riffs, licks and solos as tab. Everything runs in your browser. Nothing is uploaded.</p>
   <h4>A first song in five minutes</h4>
   <ol>
     <li>Open <b>Import / Export → Import</b> and choose <b>Start a blank song</b>, or keep the example song to explore.</li>
@@ -4324,7 +4332,7 @@ const INK = {
   saver: { ink:'#000000', muted:'#555555', rule:'#bbbbbb', accent:'#000000', lead:'#333333', fill:'#333333', over:'#333333',
            verse:'#333333', chorus:'#000000', prechorus:'#333333', bridge:'#333333', solo:'#333333', intro:'#555555', outro:'#555555', root:'#000000' },
 };
-const BG_IMG_KEY = 'songforge.bgimg.v1';
+const BG_IMG_KEY = 'tabwright.bgimg.v1';
 
 let pdfOpts = Object.assign({ chords:true, lyrics:true, charts:true, tabs:true, details:true, size:'M', orient:'auto',
   paper:'a4', ink:'color', bg:'blank', imgMode:'faded', border:'none', colLines:true }, prefs.pdf || {});
@@ -4840,7 +4848,7 @@ async function buildPdfFile() {
   const doc = new jsPDF({ unit:'mm', format: o.paper === 'letter' ? 'letter' : 'a4', orientation: plan.W > plan.H ? 'landscape' : 'portrait', compress:true });
   [['YoungSerif.ttf', 'YoungSerif', 'normal', 'YoungSerif'], ['Figtree.ttf', 'Figtree', 'normal', 'Figtree'], ['FigtreeBold.ttf', 'Figtree', 'bold', 'FigtreeBold'],
    ['JBMono.ttf', 'JBMono', 'normal', 'JBMono'], ['JBMonoBold.ttf', 'JBMono', 'bold', 'JBMonoBold']].forEach(([file, fam, st, k]) => { doc.addFileToVFS(file, PDF_FONTS[k]); doc.addFont(file, fam, st); });
-  doc.setProperties({ title: pdfText(song.title), subject: 'Song sheet', creator: 'Song Forge' });
+  doc.setProperties({ title: pdfText(song.title), subject: 'Song sheet', creator: 'Tabwright' });
   if (o.bg === 'image' && bgImage && !bgImage.el) await loadBgEl();
   const p = pdfPainter(doc);
   plan.pages.forEach((pg, i) => { if (i) doc.addPage(); drawPdfPage(p, plan, pg, i, o); });

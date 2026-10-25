@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build Song Forge into one standalone file.
+"""Build Tabwright into one standalone file.
 
 The app is written as small modules under src/. This script stitches them,
 in the order listed in src/modules.json, into:

@@ -1,4 +1,6 @@
-# Song Forge — notes for Claude
+# Tabwright — notes for Claude
+
+(Formerly "Song Forge"; renamed because that name is used by other music apps. The GitHub repo may still be named SongForge until it is renamed in Settings.)
 
 Browser guitar songwriting app (chords over lyrics, playback, chord tools, neck, tab, riffs, PDF export).
 Owner: Ofir. The default example song (`src/data/sample-song.json`) is "This Song Is Under Construction",
@@ -8,7 +10,7 @@ a funny song about writing songs, with three example riffs (intro over the Intro
 - For new features: check, plan and explain the plan first; build only after he approves.
   Small fixes and direct "execute" requests can go straight in.
 - Keep the UI low-latency and musician-friendly; dark-first design with a light theme.
-- Theme: dark by default; the Light/Dark button stores the choice in `localStorage['songforge.theme']` and an inline
+- Theme: dark by default; the Light/Dark button stores the choice in `localStorage['tabwright.theme']` and an inline
   script in the template applies it (`data-sf-theme` on `<html>`) before first paint. The OS/viewer theme is ignored on purpose.
 - Help: the Help button opens a searchable help page (`src/js/app/17-helpAndTheme.js`, `HELP` array).
   **When a feature is added or changed, update its help section in the same commit.**
@@ -30,15 +32,16 @@ a funny song about writing songs, with three example riffs (intro over the Intro
 ## Deploy / update flow
 - GitHub Pages deploys from the `main` branch root (Settings → Pages → "Deploy from a branch", main, /).
   It serves the committed `index.html`, so a change is live only after `index.html` is rebuilt and pushed.
-  `.nojekyll` skips Jekyll processing. Live URL: https://ofirish.github.io/SongForge/
+  `.nojekyll` skips Jekyll processing. Live URL: https://ofirish.github.io/Tabwright/
 - The same `index.html` can also be published as a Claude artifact. Inside the Claude viewer, file
   saves go through the `downloads` capability (publish with `capabilities: {downloads: true}`);
   standalone, `saveFile()` falls back to a normal browser download.
 
 ## Saving (user data)
-- Songs are stored only in the browser (`localStorage`): `songforge.song.v1` (current song),
-  `songforge.backups.v1` (up to 12 recent autosaves, restorable from Import / Export → Import),
-  `songforge.prefs.v1` (UI settings), `songforge.bgimg.v1` (PDF background image).
+- Songs are stored only in the browser (`localStorage`): `tabwright.song.v1` (current song),
+  `tabwright.backups.v1` (up to 12 recent autosaves, restorable from Import / Export → Import),
+  `tabwright.prefs.v1` (UI settings), `tabwright.bgimg.v1` (PDF background image), `tabwright.theme`.
+  Data saved under the old `songforge.*` keys is copied to the new keys once by the inline script in the template.
 - Writes happen ~0.35 s after each change, every minute as a safety net, and when the tab is hidden or closed.
   Loading or starting another song backs up the current one first.
 - User songs are never written to the repo. The repo holds only the app and the example song.
